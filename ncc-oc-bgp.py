@@ -251,20 +251,16 @@ if __name__ == '__main__':
             logger = logging.getLogger(l)
             logger.addHandler(handler)
             logger.setLevel(logging.DEBUG)
-        # rootLogger = logging.getLogger('ncclient.transport.ssh')
-        # rootLogger.setLevel(logging.DEBUG)
-        # handler = logging.StreamHandler()
-        # rootLogger.addHandler(handler)
 
     if args.oc_bgp_filter:
         args.filter = '<bgp xmlns="http://openconfig.net/yang/bgp"/>'
-    
-    # m =  manager.connect(host=args.host,
-    #                      port=args.port,
-    #                      username=args.username,
-    #                      password=args.password,
-    #                      device_params={'name': 'csr'})
-    
+
+    #
+    # Could use this extra param instead of the last four arguments
+    # specified below:
+    #
+    # device_params={'name': 'iosxr'}
+    #
     def iosxr_unknown_host_cb(host, fingerprint):
         return True
     m =  manager.connect(host=args.host,
