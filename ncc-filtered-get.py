@@ -2,6 +2,7 @@
 import sys
 from argparse import ArgumentParser
 from ncclient import manager
+from lxml import etree
 
 if __name__ == '__main__':
 
@@ -26,4 +27,5 @@ if __name__ == '__main__':
                          username=args.username,
                          password=args.password,
                          device_params={'name':"csr"})
-    print m.get('<filter>'+args.filter+'</filter>')
+    data = m.get('<filter>'+args.filter+'</filter>')
+    print etree.tostring(etree.fromstring(data.xml), pretty_print=True)
