@@ -2,6 +2,8 @@
 
 ## Dependencies
 
+> Note that if you are running against IOS-CR, you will currently need a version of ncclient that is not in the pypi repository. Please install from https://github.com/einarnn/ncclient. When the necessary changes have been merged upstream, this note will be removed.
+
 The package dependencies for the scripts are listed in ```requirements.txt```, which may be used to install the dependencies thus:
 
 ```
