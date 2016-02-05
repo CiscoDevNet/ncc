@@ -91,6 +91,80 @@ del_ip_from_loopback = Template("""<config>
   </interface-configurations>
 </config>""")
 
+l2transport_fails = Template("""<config>
+<interface-configurations xmlns="http://cisco.com/ns/yang/Cisco-IOS-XR-ifmgr-cfg">
+  <interface-configuration>
+   <active>act</active>
+   <interface-name>GigabitEthernet0/0/0/0</interface-name>
+   <interface-mode-non-physical>l2-transport</interface-mode-non-physical>
+   <mtus>
+    <mtu>
+     <owner>GigabitEthernet</owner>
+     <mtu>2000</mtu>
+    </mtu>
+   </mtus>
+   <shutdown/>
+  </interface-configuration>
+ </interface-configurations>
+</config>""")
+
+l2transport = Template("""<config>
+<interface-configurations xmlns="http://cisco.com/ns/yang/Cisco-IOS-XR-ifmgr-cfg">
+   <interface-configuration>
+    <active>act</active>
+    <interface-name>GigabitEthernet0/0/0/0</interface-name>
+    <description>to iosxrv-2</description>
+    <mtus>
+     <mtu>
+      <owner>GigabitEthernet</owner>
+      <mtu>2000</mtu>
+     </mtu>
+    </mtus>
+    <shutdown/>
+    <l2-transport xmlns="http://cisco.com/ns/yang/Cisco-IOS-XR-l2vpn-cfg">
+     <enabled/>
+    </l2-transport>
+   </interface-configuration>
+ </interface-configurations>
+</config>""")
+
+l2vpn = Template("""<config>
+  <l2vpn xmlns="http://cisco.com/ns/yang/Cisco-IOS-XR-l2vpn-cfg">
+   <enable/>
+   <database>
+    <xconnect-groups>
+     <xconnect-group>
+      <name>GEN15-1000</name>
+      <p2p-xconnects>
+       <p2p-xconnect>
+        <name>GEN15-p2p-1000</name>
+        <attachment-circuits>
+         <attachment-circuit>
+          <name>GigabitEthernet0/0/0/0</name>
+          <enable/>
+         </attachment-circuit>
+        </attachment-circuits>
+        <pseudowires>
+         <pseudowire>
+          <neighbor>
+           <neighbor>192.168.0.3</neighbor>
+           <mpls-static-labels>
+            <local-static-label>2006</local-static-label>
+            <remote-static-label>2006</remote-static-label>
+           </mpls-static-labels>
+           <class>static</class>
+          </neighbor>
+          <pseudowire-id>2006</pseudowire-id>
+         </pseudowire>
+        </pseudowires>
+       </p2p-xconnect>
+      </p2p-xconnects>
+     </xconnect-group>
+    </xconnect-groups>
+   </database>
+  </l2vpn>
+</config>""")
+
 
 def apply_template(m, t, commit=True, **kwargs):
     if m is None:
@@ -170,6 +244,15 @@ if __name__ == '__main__':
                    help="Naively change the VRF from FOO to BAR")
     g.add_argument('--move-vrf-complex', action='store_true',
                    help="Change the VRF from FOO to BAR, but deleting and re-applying IP as well")
+    g.add_argument('--l2vpn', action='store_true',
+                   help="Apply a bit of l2vpn config")
+    g.add_argument('--l2transport', action='store_true',
+                   help="Apply a bit of l2transport config to an interface")
+    g.add_argument('--l2both', action='store_true',
+                   help="Apply l2transport and l2vpn config in single transaction over two edits")
+    g.add_argument('--lock', action='store_true',
+                   help="Try lock/unlock")
+    
     
     args = parser.parse_args()
 
@@ -274,3 +357,19 @@ if __name__ == '__main__':
         apply_template(m, add_ip_to_loopback,
                        INTF=args.intf, IP=args.ip, NETMASK=args.netmask,
                        commit=True)
+
+    #
+    # L2VPN Test
+    #
+    elif args.l2vpn:
+        apply_template(m, l2vpn)
+    elif args.l2transport:
+        apply_template(m, l2transport)
+    elif args.l2both:
+        apply_template(m, l2transport, commit=False)
+        apply_template(m, l2vpn, commit=True)
+    elif args.lock:
+        m.lock()
+        get_running_config(m, filter=args.filter)
+        m.unlock()
+        

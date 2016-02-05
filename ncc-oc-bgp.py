@@ -137,6 +137,26 @@ foo2_add_static_route_default = Template("""<config>
 </config>""")
 
 
+shut = Template("""<config>
+  <interface-configurations xmlns="http://cisco.com/ns/yang/Cisco-IOS-XR-ifmgr-cfg">
+   <interface-configuration>
+    <active>act</active>
+    <interface-name>GigabitEthernet0/0/0/2</interface-name>
+    <shutdown/>
+   </interface-configuration>
+  </interface-configurations>
+</config>""")
+
+no_shut = Template("""<config>
+  <interface-configurations xmlns="http://cisco.com/ns/yang/Cisco-IOS-XR-ifmgr-cfg">
+   <interface-configuration>
+    <active>act</active>
+    <interface-name>GigabitEthernet0/0/0/2</interface-name>
+    <shutdown nc:operation="delete"/>
+   </interface-configuration>
+  </interface-configurations>
+</config>""")
+
 
 def add_static_route_default_vrf(m, prefix, prefix_length, next_hop_intf, next_hop_addr, next_hop_path_name):
     if m is None:
@@ -184,6 +204,15 @@ def oc_del_neighbor(m, neighbor_addr):
 
     """
     data = del_neighbor.render(NEIGHBOR_ADDR=neighbor_addr)
+    m.edit_config(data,
+                  format='xml',
+                  target='candidate',
+                  default_operation='merge')
+    m.commit()
+
+
+def do_template(m, t, **kwargs):
+    data = t.render(kwargs)
     m.edit_config(data,
                   format='xml',
                   target='candidate',
@@ -242,6 +271,10 @@ if __name__ == '__main__':
                    help="And *and* delete a BGP neighbor by address")
     g.add_argument('--add-static-route', action='store_true',
                    help="Get routes oper data")
+    g.add_argument('--shut', action='store_true',
+                   help="Shutdown interface GiE 0/0/0/2")
+    g.add_argument('--no-shut', action='store_true',
+                   help="No shutdown interface GiE 0/0/0/2")
     
     args = parser.parse_args()
 
@@ -285,3 +318,7 @@ if __name__ == '__main__':
         oc_del_neighbor(m, args.neighbor_addr)
     elif args.add_static_route:
         add_static_route_default_vrf(m, '', '', '', '', '')
+    elif args.shut:
+        do_template(m, shut)
+    elif args.no_shut:
+        do_template(m, no_shut)
