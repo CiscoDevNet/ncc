@@ -66,6 +66,8 @@ if __name__ == '__main__':
                         help="Specify this if you want a non-default port")
     parser.add_argument('-o', '--output-dir', type=str, required=False,
                         help="Where to write schema files")
+    parser.add_argument('-t', '--timeout', type=int, required=False, default=30,
+                        help="Where to write schema files")
     parser.add_argument('-v', '--verbose', action='store_true',
                         help="Do some verbose logging")
 
@@ -105,6 +107,7 @@ if __name__ == '__main__':
                          port=args.port,
                          username=args.username,
                          password=args.password,
+                         timeout=args.timeout,
                          allow_agent=False,
                          look_for_keys=False,
                          hostkey_verify=False,
