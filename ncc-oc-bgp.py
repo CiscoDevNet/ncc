@@ -220,11 +220,24 @@ def do_template(m, t, **kwargs):
     m.commit()
 
 
-def get_running_config(m, filter=None):
+def get_running_config(m, filter=None, xpath=None):
     if filter and len(filter) > 0:
         c = m.get_config(source='running', filter=('subtree', filter)).data_xml
+    elif xpath and len(xpath)>0:
+        c = m.get_config(source='running', filter=('xpath', xpath)).data_xml
     else:
         c = m.get_config(source='running').data_xml
+    print etree.tostring(etree.fromstring(c), pretty_print=True)
+        
+        
+def get(m, filter=None, xpath=None):
+    if filter and len(filter) > 0:
+        c = m.get(filter=('subtree', filter)).data_xml
+    elif xpath and len(xpath)>0:
+        c = m.get(filter=('xpath', xpath)).data_xml
+    else:
+        print ("Need a filter for oper get!")
+        return
     print etree.tostring(etree.fromstring(c), pretty_print=True)
         
         
@@ -254,6 +267,8 @@ if __name__ == '__main__':
     g = parser.add_mutually_exclusive_group()
     g.add_argument('-f', '--filter', type=str,
                    help="XML-formatted netconf subtree filter")
+    g.add_argument('-x', '--xpath', type=str,
+                   help="XPath-formatted filter")
     g.add_argument('-o', '--oc-bgp-filter', action='store_true',
                    help="XML-formatted netconf subtree filter")
 
@@ -261,6 +276,8 @@ if __name__ == '__main__':
     g = parser.add_mutually_exclusive_group()
     g.add_argument('-g', '--get-running', action='store_true',
                    help="Get the running config")
+    g.add_argument('--get-oper', action='store_true',
+                   help="Get oper data")
     g.add_argument('-b', '--basic', action='store_true',
                    help="Establish basic BGP config")
     g.add_argument('-a', '--add-neighbor', action='store_true',
@@ -306,7 +323,15 @@ if __name__ == '__main__':
                          unknown_host_cb=iosxr_unknown_host_cb)
 
     if args.get_running:
-        get_running_config(m, filter=args.filter)
+        if args.xpath:
+            get_running_config(m, xpath=args.xpath)
+        else:
+            get_running_config(m, filter=args.filter)
+    if args.get_oper:
+        if args.xpath:
+            get(m, xpath=args.xpath)
+        else:
+            get(m, filter=args.filter)
     elif args.basic:
         oc_basic(m)
     elif args.add_neighbor:
