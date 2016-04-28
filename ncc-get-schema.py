@@ -6,10 +6,10 @@ from ncclient.operations.rpc import RPCError
 import logging
 from BeautifulSoup import BeautifulStoneSoup
 
-def get_schema(host, port, user, passwd, schema):
+def get_schema(host, port, user, passwd, schema, version):
     with manager.connect(timeout=120, host=host, port=port, username=user, password=passwd, device_params={'name':"iosxr"}) as m:
         try:
-            c = m.get_schema(schema)
+            c = m.get_schema(schema, version=version)
             print BeautifulStoneSoup(c.xml, convertEntities=BeautifulStoneSoup.HTML_ENTITIES).find('data').getText()
         except RPCError as e:
             print >>sys.stderr, 'Failed to get schema {} || RPCError: severity={}, tag={}, message={}'.format(
@@ -28,6 +28,8 @@ if __name__ == '__main__':
     parser.add_argument('--port', type=int, default=830,
                         help="Specify this if you want a non-default port")
     parser.add_argument('--schema', type=str, required=True,
+                        help="Get just this schema")
+    parser.add_argument('--version', type=str, default=None,
                         help="Get just this schema")
     parser.add_argument('-v', '--verbose', action='store_true',
                         help="Do some verbose logging")
@@ -49,4 +51,5 @@ if __name__ == '__main__':
         args.port,
         args.username,
         args.password,
-        args.schema)
+        args.schema,
+        args.version)
