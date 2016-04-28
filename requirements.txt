@@ -1,3 +1,5 @@
 BeautifulSoup==3.2.1
 Jinja2==2.8
 ncclient>=0.4.7
+pyang>=1.6
+
