@@ -147,6 +147,7 @@ shut = Template("""<config>
   </interface-configurations>
 </config>""")
 
+
 no_shut = Template("""<config>
   <interface-configurations xmlns="http://cisco.com/ns/yang/Cisco-IOS-XR-ifmgr-cfg">
    <interface-configuration>
@@ -156,6 +157,43 @@ no_shut = Template("""<config>
    </interface-configuration>
   </interface-configurations>
 </config>""")
+
+
+named_templates = {
+    'set_autoneg_true': Template("""<config>
+  <interface-configurations xmlns="http://cisco.com/ns/yang/Cisco-IOS-XR-ifmgr-cfg">
+   <interface-configuration>
+    <active>act</active>
+    <interface-name>GigabitEthernet0/0/0/0</interface-name>
+     <ethernet xmlns="http://cisco.com/ns/yang/Cisco-IOS-XR-drivers-media-eth-cfg">
+      <auto-negotiation>true</auto-negotiation>
+     </ethernet>
+   </interface-configuration>
+  </interface-configurations>
+</config>"""),
+    'set_autoneg_override': Template("""<config>
+  <interface-configurations xmlns="http://cisco.com/ns/yang/Cisco-IOS-XR-ifmgr-cfg">
+   <interface-configuration>
+    <active>act</active>
+    <interface-name>GigabitEthernet0/0/0/0</interface-name>
+     <ethernet xmlns="http://cisco.com/ns/yang/Cisco-IOS-XR-drivers-media-eth-cfg">
+      <auto-negotiation>override</auto-negotiation>
+     </ethernet>
+   </interface-configuration>
+  </interface-configurations>
+</config>"""),
+    'delete_autoneg': Template("""<config>
+  <interface-configurations xmlns="http://cisco.com/ns/yang/Cisco-IOS-XR-ifmgr-cfg">
+   <interface-configuration>
+    <active>act</active>
+    <interface-name>GigabitEthernet0/0/0/0</interface-name>
+     <ethernet xmlns="http://cisco.com/ns/yang/Cisco-IOS-XR-drivers-media-eth-cfg">
+      <auto-negotiation nc:operation="delete"/>
+     </ethernet>
+   </interface-configuration>
+  </interface-configurations>
+</config>"""),
+}
 
 
 def add_static_route_default_vrf(m, prefix, prefix_length, next_hop_intf, next_hop_addr, next_hop_path_name):
@@ -230,6 +268,13 @@ def get_running_config(m, filter=None, xpath=None):
     print etree.tostring(etree.fromstring(c), pretty_print=True)
         
         
+<<<<<<< HEAD
+def get(m, filter=None):
+    if filter and len(filter) > 0:
+        c = m.get(filter=('subtree', filter)).data_xml
+    else:
+        c = m.get().data_xml
+=======
 def get(m, filter=None, xpath=None):
     if filter and len(filter) > 0:
         c = m.get(filter=('subtree', filter)).data_xml
@@ -238,6 +283,7 @@ def get(m, filter=None, xpath=None):
     else:
         print ("Need a filter for oper get!")
         return
+>>>>>>> baf6fd05dd66c11d7e9c8cb77227f15eabf6b4b0
     print etree.tostring(etree.fromstring(c), pretty_print=True)
         
         
@@ -292,6 +338,8 @@ if __name__ == '__main__':
                    help="Shutdown interface GiE 0/0/0/2")
     g.add_argument('--no-shut', action='store_true',
                    help="No shutdown interface GiE 0/0/0/2")
+    g.add_argument('--do-edit', type=str,
+                   help="Execute a named template")
     
     args = parser.parse_args()
 
@@ -327,7 +375,7 @@ if __name__ == '__main__':
             get_running_config(m, xpath=args.xpath)
         else:
             get_running_config(m, filter=args.filter)
-    if args.get_oper:
+    elif args.get_oper:
         if args.xpath:
             get(m, xpath=args.xpath)
         else:
@@ -347,3 +395,5 @@ if __name__ == '__main__':
         do_template(m, shut)
     elif args.no_shut:
         do_template(m, no_shut)
+    elif args.do_edit:
+        do_template(m, named_templates[args.do_edit])
