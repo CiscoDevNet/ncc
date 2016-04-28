@@ -147,6 +147,7 @@ shut = Template("""<config>
   </interface-configurations>
 </config>""")
 
+
 no_shut = Template("""<config>
   <interface-configurations xmlns="http://cisco.com/ns/yang/Cisco-IOS-XR-ifmgr-cfg">
    <interface-configuration>
@@ -156,6 +157,43 @@ no_shut = Template("""<config>
    </interface-configuration>
   </interface-configurations>
 </config>""")
+
+
+named_templates = {
+    'set_autoneg_true': Template("""<config>
+  <interface-configurations xmlns="http://cisco.com/ns/yang/Cisco-IOS-XR-ifmgr-cfg">
+   <interface-configuration>
+    <active>act</active>
+    <interface-name>GigabitEthernet0/0/0/0</interface-name>
+     <ethernet xmlns="http://cisco.com/ns/yang/Cisco-IOS-XR-drivers-media-eth-cfg">
+      <auto-negotiation>true</auto-negotiation>
+     </ethernet>
+   </interface-configuration>
+  </interface-configurations>
+</config>"""),
+    'set_autoneg_override': Template("""<config>
+  <interface-configurations xmlns="http://cisco.com/ns/yang/Cisco-IOS-XR-ifmgr-cfg">
+   <interface-configuration>
+    <active>act</active>
+    <interface-name>GigabitEthernet0/0/0/0</interface-name>
+     <ethernet xmlns="http://cisco.com/ns/yang/Cisco-IOS-XR-drivers-media-eth-cfg">
+      <auto-negotiation>override</auto-negotiation>
+     </ethernet>
+   </interface-configuration>
+  </interface-configurations>
+</config>"""),
+    'delete_autoneg': Template("""<config>
+  <interface-configurations xmlns="http://cisco.com/ns/yang/Cisco-IOS-XR-ifmgr-cfg">
+   <interface-configuration>
+    <active>act</active>
+    <interface-name>GigabitEthernet0/0/0/0</interface-name>
+     <ethernet xmlns="http://cisco.com/ns/yang/Cisco-IOS-XR-drivers-media-eth-cfg">
+      <auto-negotiation nc:operation="delete"/>
+     </ethernet>
+   </interface-configuration>
+  </interface-configurations>
+</config>"""),
+}
 
 
 def add_static_route_default_vrf(m, prefix, prefix_length, next_hop_intf, next_hop_addr, next_hop_path_name):
@@ -228,6 +266,14 @@ def get_running_config(m, filter=None):
     print etree.tostring(etree.fromstring(c), pretty_print=True)
         
         
+def get(m, filter=None):
+    if filter and len(filter) > 0:
+        c = m.get(filter=('subtree', filter)).data_xml
+    else:
+        c = m.get().data_xml
+    print etree.tostring(etree.fromstring(c), pretty_print=True)
+        
+        
 if __name__ == '__main__':
 
     parser = ArgumentParser(description='Select your simple OC-BGP operation:')
@@ -259,6 +305,8 @@ if __name__ == '__main__':
 
     # Basic operations
     g = parser.add_mutually_exclusive_group()
+    g.add_argument('--get', action='store_true',
+                   help="Get")
     g.add_argument('-g', '--get-running', action='store_true',
                    help="Get the running config")
     g.add_argument('-b', '--basic', action='store_true',
@@ -275,6 +323,8 @@ if __name__ == '__main__':
                    help="Shutdown interface GiE 0/0/0/2")
     g.add_argument('--no-shut', action='store_true',
                    help="No shutdown interface GiE 0/0/0/2")
+    g.add_argument('--do-edit', type=str,
+                   help="Execute a named template")
     
     args = parser.parse_args()
 
@@ -305,7 +355,9 @@ if __name__ == '__main__':
                          hostkey_verify=False,
                          unknown_host_cb=iosxr_unknown_host_cb)
 
-    if args.get_running:
+    if args.get:
+        get(m, filter=args.filter)
+    elif args.get_running:
         get_running_config(m, filter=args.filter)
     elif args.basic:
         oc_basic(m)
@@ -322,3 +374,5 @@ if __name__ == '__main__':
         do_template(m, shut)
     elif args.no_shut:
         do_template(m, no_shut)
+    elif args.do_edit:
+        do_template(m, named_templates[args.do_edit])
