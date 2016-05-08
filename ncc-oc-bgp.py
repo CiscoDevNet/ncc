@@ -268,13 +268,6 @@ def get_running_config(m, filter=None, xpath=None):
     print etree.tostring(etree.fromstring(c), pretty_print=True)
         
         
-<<<<<<< HEAD
-def get(m, filter=None):
-    if filter and len(filter) > 0:
-        c = m.get(filter=('subtree', filter)).data_xml
-    else:
-        c = m.get().data_xml
-=======
 def get(m, filter=None, xpath=None):
     if filter and len(filter) > 0:
         c = m.get(filter=('subtree', filter)).data_xml
@@ -283,7 +276,6 @@ def get(m, filter=None, xpath=None):
     else:
         print ("Need a filter for oper get!")
         return
->>>>>>> baf6fd05dd66c11d7e9c8cb77227f15eabf6b4b0
     print etree.tostring(etree.fromstring(c), pretty_print=True)
         
         
