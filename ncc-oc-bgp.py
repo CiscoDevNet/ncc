@@ -193,6 +193,49 @@ named_templates = {
    </interface-configuration>
   </interface-configurations>
 </config>"""),
+    'delete_ebgp_multihop_enabled': Template("""<config>
+  <bgp xmlns="http://openconfig.net/yang/bgp">
+   <neighbors>
+    <neighbor>
+     <neighbor-address>192.168.1.222</neighbor-address>
+     <ebgp-multihop>
+      <config>
+       <enabled nc:operation="delete"/>
+      </config>
+     </ebgp-multihop>
+    </neighbor>
+   </neighbors>
+  </bgp>
+</config>"""),
+    'set_ebgp_multihop_enabled_true': Template("""<config>
+  <bgp xmlns="http://openconfig.net/yang/bgp">
+   <neighbors>
+    <neighbor>
+     <neighbor-address>192.168.1.222</neighbor-address>
+     <ebgp-multihop>
+      <config>
+       <enabled>true</enabled>
+      </config>
+     </ebgp-multihop>
+    </neighbor>
+   </neighbors>
+  </bgp>
+</config>"""),
+    'set_ebgp_multihop_enabled_false': Template("""<config>
+  <bgp xmlns="http://openconfig.net/yang/bgp">
+   <neighbors>
+    <neighbor>
+     <neighbor-address>192.168.1.222</neighbor-address>
+     <ebgp-multihop>
+      <config>
+       <enabled>false</enabled>
+      </config>
+     </ebgp-multihop>
+    </neighbor>
+   </neighbors>
+  </bgp>
+</config>"""),
+
 }
 
 
