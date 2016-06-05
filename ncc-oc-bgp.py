@@ -235,7 +235,116 @@ named_templates = {
    </neighbors>
   </bgp>
 </config>"""),
-
+    'classmap_einarnn_3': Template("""<config>
+  <policy-manager xmlns="http://cisco.com/ns/yang/Cisco-IOS-XR-asr9k-policymgr-cfg">
+   <class-maps>
+    <class-map>
+     <type>qos</type>
+     <name>EINARNN_3</name>
+     <class-map-mode-match-any/>
+     <match>
+      <ipv4-dscp>42-45</ipv4-dscp>
+     </match>
+    </class-map>
+   </class-maps>
+  </policy-manager>
+</config>"""),
+    'classmap_einarnn_4': Template("""<config>
+  <policy-manager xmlns="http://cisco.com/ns/yang/Cisco-IOS-XR-asr9k-policymgr-cfg">
+   <class-maps>
+    <class-map>
+     <type>qos</type>
+     <name>EINARNN_4</name>
+     <class-map-mode-match-any/>
+     <match>
+      <ipv4-dscp>42</ipv4-dscp>
+      <ipv4-dscp>43</ipv4-dscp>
+      <ipv4-dscp>44</ipv4-dscp>
+      <ipv4-dscp>45</ipv4-dscp>
+     </match>
+    </class-map>
+   </class-maps>
+  </policy-manager>
+</config>"""),
+    'classmap_einarnn_5': Template("""<config>
+  <policy-manager xmlns="http://cisco.com/ns/yang/Cisco-IOS-XR-asr9k-policymgr-cfg">
+   <class-maps>
+    <class-map>
+     <type>qos</type>
+     <name>EINARNN_5</name>
+     <class-map-mode-match-any/>
+     <match>
+      <ipv4-dscp>af21</ipv4-dscp>
+      <ipv4-dscp>af22</ipv4-dscp>
+      <ipv4-dscp>cs2</ipv4-dscp>
+      <ipv4-dscp>cs6</ipv4-dscp>
+     </match>
+    </class-map>
+   </class-maps>
+  </policy-manager>
+</config>"""),
+    'classmap_einarnn_6': Template("""<config>
+  <policy-manager xmlns="http://cisco.com/ns/yang/Cisco-IOS-XR-asr9k-policymgr-cfg">
+   <class-maps>
+    <class-map>
+     <type>qos</type>
+     <name>EINARNN_6</name>
+     <class-map-mode-match-any/>
+     <match>
+      <ipv4-dscp>42</ipv4-dscp>
+      <ipv4-dscp>44</ipv4-dscp>
+      <ipv4-dscp>45</ipv4-dscp>
+      <ipv4-dscp>46</ipv4-dscp>
+      <ipv6-dscp>42</ipv6-dscp>
+      <ipv6-dscp>44</ipv6-dscp>
+      <ipv6-dscp>45</ipv6-dscp>
+      <ipv6-dscp>46</ipv6-dscp>
+     </match>
+    </class-map>
+   </class-maps>
+  </policy-manager>
+</config>"""),
+    'classmap_delete_einarnn_all': Template("""<config>
+  <policy-manager xmlns="http://cisco.com/ns/yang/Cisco-IOS-XR-asr9k-policymgr-cfg">
+   <class-maps>
+    <class-map nc:operation="delete">
+     <type>qos</type>
+     <name>EINARNN_3</name>
+    </class-map>
+    <class-map nc:operation="delete">
+     <type>qos</type>
+     <name>EINARNN_4</name>
+    </class-map>
+    <class-map nc:operation="delete">
+     <type>qos</type>
+     <name>EINARNN_5</name>
+    </class-map>
+    <class-map nc:operation="delete">
+     <type>qos</type>
+     <name>EINARNN_6</name>
+    </class-map>
+   </class-maps>
+  </policy-manager>
+</config>"""),
+    'classmap_mahesh': Template("""<config>
+      <policy-manager xmlns="http://cisco.com/ns/yang/Cisco-IOS-XR-asr9k-policymgr-cfg">
+        <class-maps>
+          <class-map>
+            <type>qos</type>
+            <name>VRF-PRET</name>
+            <match>
+              <mpls-experimental-topmost>5</mpls-experimental-topmost>
+              <ipv4-dscp>42</ipv4-dscp>
+              <ipv4-dscp>44</ipv4-dscp>
+              <ipv4-dscp>45</ipv4-dscp>
+              <ipv4-dscp>46</ipv4-dscp>
+              <qos-group>1</qos-group>
+            </match>
+            <class-map-mode-match-any/>
+          </class-map>
+        </class-maps>
+      </policy-manager>
+</config>"""),
 }
 
 
