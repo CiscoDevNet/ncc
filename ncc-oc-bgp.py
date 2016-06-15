@@ -326,21 +326,31 @@ named_templates = {
    </class-maps>
   </policy-manager>
 </config>"""),
-    'classmap_mahesh': Template("""<config>
-      <policy-manager xmlns="http://cisco.com/ns/yang/Cisco-IOS-XR-asr9k-policymgr-cfg">
+    'xxx': Template("""<config>
+      <policy-manager xmlns="http://cisco.com/ns/yang/Cisco-IOS-XR-infra-policymgr-cfg">
         <class-maps>
           <class-map>
             <type>qos</type>
-            <name>VRF-PRET</name>
+            <name>XXX</name>
             <match>
               <mpls-experimental-topmost>5</mpls-experimental-topmost>
               <ipv4-dscp>42</ipv4-dscp>
               <ipv4-dscp>44</ipv4-dscp>
-              <ipv4-dscp>45</ipv4-dscp>
               <ipv4-dscp>46</ipv4-dscp>
+              <ipv4-dscp>45</ipv4-dscp>
               <qos-group>1</qos-group>
             </match>
             <class-map-mode-match-any/>
+          </class-map>
+        </class-maps>
+      </policy-manager>
+</config>"""),
+    'xxx_del': Template("""<config>
+      <policy-manager xmlns="http://cisco.com/ns/yang/Cisco-IOS-XR-infra-policymgr-cfg">
+        <class-maps>
+          <class-map nc:operation="delete">
+            <type>qos</type>
+            <name>XXX</name>
           </class-map>
         </class-maps>
       </policy-manager>
