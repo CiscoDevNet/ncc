@@ -1,9 +1,9 @@
-# Various Scripts
+# Various Scripts & Jupyter Notebooks
 
 ## Dependencies
 
 
-The package dependencies for the scripts are listed in ```requirements.txt```, which may be used to install the dependencies thus:
+The package dependencies for the scripts and the jupyter notebooks are listed in ```requirements.txt```, which may be used to install the dependencies thus (note the upgrade to pip; must be running pip >= 8.1.2 to successfully install some dependenciues):
 
 ```
 EINARNN-M-80AT:ncc einarnn$ virtualenv v
@@ -11,10 +11,31 @@ New python executable in v/bin/python2.7
 Also creating executable in v/bin/python
 Installing setuptools, pip, wheel...done.
 EINARNN-M-80AT:ncc einarnn$ . v/bin/activate
+(v)EINARNN-M-80AT:ncc einarnn$ pip install --upgrade pip
+Requirement already up-to-date: pip in ./v/lib/python2.7/site-packages
 (v)EINARNN-M-80AT:ncc einarnn$ pip install -r requirements.txt
 ```
 
-This example shows using the virtualenv tool to isolate packages from your global python install. This is recommended.
+This example shows using the virtualenv tool to isolate packages from your global python install. This is recommended. Note that the versiojn of pip installed in the test environment was up to date, and so it did not need upgraded.
+
+## Running A Jupyter Notebook
+
+The jupyter notebook server should be run inside the same Python virtualenv as you created above. The server is run up thus:
+
+```
+EINARNN-M-D10Q:ncc einarnn$ pwd
+/opt/git-repos/ncc
+EINARNN-M-D10Q:ncc einarnn$ . v/bin/activate
+(v) EINARNN-M-D10Q:ncc einarnn$ jupyter notebook
+[I 16:39:38.230 NotebookApp] The port 8888 is already in use, trying another port.
+[I 16:39:38.240 NotebookApp] Serving notebooks from local directory: /opt/git-repos/ncc
+[I 16:39:38.240 NotebookApp] 0 active kernels
+[I 16:39:38.240 NotebookApp] The Jupyter Notebook is running at: http://localhost:8889/
+[I 16:39:38.240 NotebookApp] Use Control-C to stop this server and shut down all kernels (twice to skip confirmation).
+```
+
+When the notebook server is running, it will also open up a web page with your default web browser, pointing to the jupyter notebook server. Just pick one of the notebooks (```*.ipynb```) and away you go!!
+
 
 ## Running The Scripts
 
@@ -55,27 +76,3 @@ optional arguments:
   --add-del-neighbor    And *and* delete a BGP neighbor by address
   --add-static-route    Get routes oper data
 ```
-
-## The Scripts
-
-The scripts here are listed below with some minimal descriptions, but the real functionality can only be gleaned by reading the code for now. The code is **not** production-ready in general, and if there is no description it may be because the script is no longer used or maintained.
-
-- [ncc-cia.py](ncc-cia.py)
-- [ncc-csr1000v.py](ncc-csr1000v.py)
-- [ncc-get-all-schema.py](ncc-get-all-schema.py): Get all the schema from a device that are listed in the initial capabilities exchange. Modules that are included or imported are **not** downloaded by the script currently. An output directory must be provided, and all downloaded schema are put there.
-- [ncc-get-config-running.py](ncc-get-config-running.py)
-- [ncc-get-oper-interface-all.py](ncc-get-oper-interface-all.py)
-- [ncc-get-oper-interface-interfacebrief-name.py](ncc-get-oper-interface-interfacebrief-name.py)
-- [ncc-get-oper-interface-interfacebriefs.py](ncc-get-oper-interface-interfacebriefs.py)
-- [ncc-get-oper-interface-location-view.py](ncc-get-oper-interface-location-view.py)
-- [ncc-get-oper-interface-nodetypesets.py](ncc-get-oper-interface-nodetypesets.py)
-- [ncc-get-oper-interface-stats-forever.py](ncc-get-oper-interface-stats-forever.py)
-- [ncc-get-oper-interface-stats.py](ncc-get-oper-interface-stats.py)
-- [ncc-get-oper-interface-system-view.py](ncc-get-oper-interface-system-view.py)
-- [ncc-get-oper-interface-xr.py](ncc-get-oper-interface-xr.py)
-- [ncc-get-oper-interface.py](ncc-get-oper-interface.py)
-- [ncc-get-schema.py](ncc-get-schema.py): Get a specific named schema. The schema is printed to STDOUT.
-- [ncc-list-caps.py](ncc-list-caps.py)
-- [ncc-list-schema.py](ncc-list-schema.py): List the schema advertised in the initial capabilities exchange.
-- [ncc-oc-bgp.py](ncc-oc-bgp.py): A variety of OpenConfig operations combined with some generic "get the config with an optional subtree filter" functionality.
-- [ncc-validate.py](ncc-validate.py)
