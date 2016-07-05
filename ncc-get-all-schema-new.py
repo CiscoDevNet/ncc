@@ -2,7 +2,7 @@
 import sys
 import time
 import logging
-from sets import Set
+import re
 from os import listdir
 from os.path import isfile, join, basename
 from argparse import ArgumentParser
@@ -103,36 +103,54 @@ if __name__ == '__main__':
     #
     def iosxr_unknown_host_cb(host, fingerprint):
         return True
-    m =  manager.connect(host=args.host,
-                         port=args.port,
-                         username=args.username,
-                         password=args.password,
-                         timeout=args.timeout,
-                         allow_agent=False,
-                         look_for_keys=False,
-                         hostkey_verify=False,
-                         unknown_host_cb=iosxr_unknown_host_cb)
+    mgr =  manager.connect(host=args.host,
+                           port=args.port,
+                           username=args.username,
+                           password=args.password,
+                           timeout=args.timeout,
+                           allow_agent=False,
+                           look_for_keys=False,
+                           hostkey_verify=False,
+                           unknown_host_cb=iosxr_unknown_host_cb)
 
     #
     # retrieve the schemas datatree and extract all the schema
     # identifiers
     #
-    schema_tree = get(m, schemas_filter)
+    schema_tree = get(mgr, schemas_filter)
     soup = BeautifulSoup(schema_tree)
     schema_list = [s.getText() for s in soup.findAll('identifier')]
+
+    #
+    # check the schema list against server capabilities
+    #
+    not_in_schemas = set()
+    for c in mgr.server_capabilities:
+        model = re.search('module=([^&]*)&', c)
+        if model is not None:
+            m = model.group(1)
+            if m not in schema_list:
+                not_in_schemas.add(m)
+    if len(not_in_schemas) > 0:
+        print('The following models are advertised in capabilities but are not in schemas tree:')
+        for m in not_in_schemas:
+            print '    {}'.format(m)
+    
+    #
+    # this dict is for keeping track of the schemas that failed to
+    # download
+    #
+    failed_download = set()
 
     #
     # Now download all the schema, which also returns a list of any
     # that failed to be downloaded. If we downloaded, list the failed
     # downloads (if any).
     #
-    failed_download = []
     if not args.skip_download:
-        failed_download = get_schema(m, schema_list, args.output_dir, args.start_after)
-        if len(failed_download)>0:
-            print "The following schema failed to download:"
-            for s in failed_download:
-                print '    {}'.format(s)
+        failed = get_schema(mgr, schema_list, args.output_dir, args.start_after)
+        for f in failed:
+            failed_download.add(str(f))
 
     #
     # Now let's check all the schema that we downloaded (from this run
@@ -140,10 +158,9 @@ if __name__ == '__main__':
     # or includes and verify that they were on the advertised schema
     # list and didn't fail download.
     #
-    # TODO: check that filenames have yang extension?
     # TODO: cater for explicitly revisioned imports & includes
     #
-    imports_and_includes = Set()
+    imports_and_includes = set()
     repos = pyang.FileRepository(args.output_dir)
     yangfiles = [f for f in listdir(args.output_dir) if isfile(join(args.output_dir, f))]
     for fname in yangfiles:
@@ -164,16 +181,33 @@ if __name__ == '__main__':
     #
     not_advertised = [i for i in imports_and_includes if i not in schema_list]
     if len(not_advertised)>0:
-        print 'The following schema are imported or included, but not advertised:'
-        for m in not_advertised:
+
+        #
+        # list the not-advertised schemas
+        #
+        print 'The following schema are imported or included, but not listed in schemas tree:'
+        for m in sorted(not_advertised, key=str.lower):
             print '    {}'.format(m)
 
+        #
+        # try to download the not-advertised schemas
+        #
+        for m in not_advertised:
+            try:
+                c = mgr.get_schema(m)
+                with open(args.output_dir+'/'+m+'.yang', 'w') as yang:
+                    print >>yang, BeautifulSoup(
+                        c.xml,
+                        convertEntities=BeautifulSoup.HTML_ENTITIES).find('data').getText()
+                    yang.close()
+            except RPCError as e:
+                failed_download.add(str(m))
+            
     #
     # List out the schema that are imported or included and NOT
     # downloaded successfully.
     #
-    not_downloaded = [i for i in imports_and_includes if i in failed_download]
-    if len(not_downloaded)>0:
-        print 'The following schema are imported or included, but not downloaded:'
-        for m in not_downloaded:
+    if len(failed_download)>0:
+        print 'The following schema are imported, included or advertised, but not downloadable:'
+        for m in sorted(failed_download, key=str.lower):
             print '    {}'.format(m)
