@@ -355,6 +355,176 @@ named_templates = {
         </class-maps>
       </policy-manager>
 </config>"""),
+
+    #
+    # create a simple policy
+    #
+    'policy_test_cr': Template("""<config>
+  <policy-manager xmlns="http://cisco.com/ns/yang/Cisco-IOS-XR-infra-policymgr-cfg">
+   <policy-maps>
+    <policy-map>
+     <type>qos</type>
+     <name>testtest</name>
+     <policy-map-rule>
+      <class-name>dscp-31</class-name>
+      <class-type>qos</class-type>
+      <police>
+       <rate>
+        <value>100</value>
+        <units>kbps</units>
+       </rate>
+       <burst>
+        <value>200</value>
+        <units>bytes</units>
+       </burst>
+      </police>
+     </policy-map-rule>
+    </policy-map>
+   </policy-maps>
+  </policy-manager>
+</config"""),
+    
+    'class_dscp31_cr': Template("""<config>
+  <policy-manager xmlns="http://cisco.com/ns/yang/Cisco-IOS-XR-infra-policymgr-cfg">
+   <class-maps>
+    <class-map>
+     <type>qos</type>
+     <name>dscp-31</name>
+     <class-map-mode-match-any/>
+     <match>
+      <dscp>31</dscp>
+     </match>
+    </class-map>
+   </class-maps>
+  </policy-manager>
+</config"""),
+
+    'class_dscp31_del': Template("""<config>
+  <policy-manager xmlns="http://cisco.com/ns/yang/Cisco-IOS-XR-infra-policymgr-cfg">
+   <class-maps>
+    <class-map nc:operation="delete">
+     <type>qos</type>
+     <name>dscp-31</name>
+    </class-map>
+   </class-maps>
+  </policy-manager>
+</config"""),
+
+    #
+    # create a simple policy
+    #
+    'policy_test_del': Template("""<config>
+  <policy-manager xmlns="http://cisco.com/ns/yang/Cisco-IOS-XR-infra-policymgr-cfg">
+   <policy-maps>
+    <policy-map nc:operation="delete">
+     <type>qos</type>
+     <name>test</name>
+    </policy-map>
+   </policy-maps>
+</config"""),
+    
+    #
+    #  create an empty VRF
+    #
+    'empty_vrf': Template("""<config>
+  <vrfs xmlns="http://cisco.com/ns/yang/Cisco-IOS-XR-infra-rsi-cfg"/>
+</config>"""),
+
+    #
+    # create empty l2vpn elements
+    #
+    'empty_l2vpn': Template("""<config>
+  <l2vpn xmlns="http://cisco.com/ns/yang/Cisco-IOS-XR-l2vpn-cfg" nc:operation="merge">
+    <database>
+      <bridge-domain-groups/>
+    </database>
+  </l2vpn>
+</config>"""),
+
+    #
+    # delete all l2vpn elements
+    #
+    'delete_l2vpn': Template("""<config>
+  <l2vpn xmlns="http://cisco.com/ns/yang/Cisco-IOS-XR-l2vpn-cfg" nc:operation="delete">
+  </l2vpn>
+</config>"""),
+
+    #
+    # create other l2vpn config
+    #
+    'more_l2vpn': Template("""<config>
+  <l2vpn xmlns="http://cisco.com/ns/yang/Cisco-IOS-XR-l2vpn-cfg" nc:operation="merge">
+    <database>
+      <bridge-domain-groups>
+	<bridge-domain-group xmlns:a="urn:ietf:params:xml:ns:netconf:base:1.0">
+	  <name>SERVICE</name>
+	  <bridge-domains>
+	    <bridge-domain>
+	      <name>ESP-vPE1</name>
+	      <bd-attachment-circuits>
+		<bd-attachment-circuit>
+		  <name>Bundle-Ether46001.1</name>
+		</bd-attachment-circuit>
+	      </bd-attachment-circuits>
+	    </bridge-domain>
+	  </bridge-domains>
+	</bridge-domain-group>
+      </bridge-domain-groups>
+    </database>
+  </l2vpn>
+</config>"""),
+
+    #
+    # delete bridge-domain-groups
+    #
+    'l2vpn_bdgroups_del': Template("""<config>
+  <l2vpn xmlns="http://cisco.com/ns/yang/Cisco-IOS-XR-l2vpn-cfg">
+    <database>
+      <bridge-domain-groups nc:operation="delete">
+	<bridge-domain-group>
+	  <name>SERVICE</name>
+	  <bridge-domains>
+	    <bridge-domain>
+	      <name>ESP-vPE1</name>
+	      <bd-attachment-circuits>
+		<bd-attachment-circuit>
+		  <name>Bundle-Ether46001.1</name>
+		</bd-attachment-circuit>
+	      </bd-attachment-circuits>
+	    </bridge-domain>
+	  </bridge-domains>
+	</bridge-domain-group>
+      </bridge-domain-groups>
+    </database>
+  </l2vpn>
+</config>"""),
+
+    #
+    # OSPF test
+    #
+    'simple_ospf': Template("""<config>
+<ospf xmlns="http://cisco.com/ns/yang/Cisco-IOS-XR-ipv4-ospf-cfg">
+ <processes>
+  <process>
+   <process-name>apphost</process-name>
+   <default-vrf>
+    <area-addresses>
+     <area-area-id>
+      <area-id>0</area-id>
+      <name-scopes>
+       <name-scope>
+        <interface-name>GigabitEthernet0/0/0/0</interface-name>
+        <cost>30</cost>
+       </name-scope>
+      </name-scopes>
+      </area-area-id>
+     </area-addresses>
+    </default-vrf>
+  </process>
+ </processes>
+</ospf>
+</config>"""),
+
 }
 
 
@@ -365,7 +535,7 @@ def add_static_route_default_vrf(m, prefix, prefix_length, next_hop_intf, next_h
     m.edit_config(data,
                   format='xml',
                   target='candidate',
-                  default_operation='merge')
+                  default_operation='none')
     m.commit()
     
 
@@ -420,6 +590,17 @@ def do_template(m, t, **kwargs):
     m.commit()
 
 
+def do_templates(m, t_list, default_op='merge', **kwargs):
+    for t in t_list:
+        tmpl = named_templates[t]
+        data = tmpl.render(kwargs)
+        m.edit_config(data,
+                      format='xml',
+                      target='candidate',
+                      default_operation=default_op)
+    m.commit()
+
+
 def get_running_config(m, filter=None, xpath=None):
     if filter and len(filter) > 0:
         c = m.get_config(source='running', filter=('subtree', filter)).data_xml
@@ -462,6 +643,8 @@ if __name__ == '__main__':
                         help="Specify the neighbor's description, just a string (quote it!)")
     parser.add_argument('-v', '--verbose', action='store_true',
                         help="Do I really need to explain?")
+    parser.add_argument('--default-op', type=str, default='merge',
+                        help="The NETCONF default operatiopn to use (merge by default")
 
     # Only one type of filter
     g = parser.add_mutually_exclusive_group()
@@ -494,6 +677,8 @@ if __name__ == '__main__':
                    help="No shutdown interface GiE 0/0/0/2")
     g.add_argument('--do-edit', type=str,
                    help="Execute a named template")
+    g.add_argument('--do-edits', type=str, nargs='+',
+                   help="Execute a sequence of named templates with an optional default operation and a single commit")
     
     args = parser.parse_args()
 
@@ -551,3 +736,5 @@ if __name__ == '__main__':
         do_template(m, no_shut)
     elif args.do_edit:
         do_template(m, named_templates[args.do_edit])
+    elif args.do_edits:
+        do_templates(m, args.do_edits, default_op=args.default_op)
