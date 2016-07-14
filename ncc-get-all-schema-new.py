@@ -168,7 +168,7 @@ if __name__ == '__main__':
         fd = open(args.output_dir+'/'+fname, 'r')
         text = fd.read()
         ctx.add_module(fname, text)
-        This_module = basename(fname).split(".")[0]
+        this_module = basename(fname).split(".")[0]
         for ((m,r), module) in ctx.modules.iteritems():
             if m==this_module:
                 for s in module.substmts:
