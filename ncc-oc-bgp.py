@@ -525,6 +525,88 @@ named_templates = {
 </ospf>
 </config>"""),
 
+    #
+    # Enable RESTCONF on a capable box. Needs to have the IP address
+    # of the bridge attached to the MgmtEth.
+    #
+    'restconf': Template("""<config>
+  <ip xmlns="http://cisco.com/ns/yang/Cisco-IOS-XR-ip-tcp-cfg">
+   <cinetd>
+    <services>
+     <vrfs>
+      <vrf>
+       <vrf-name>default</vrf-name>
+       <ipv4>
+        <telnet>
+         <tcp>
+          <maximum-server>35</maximum-server>
+         </tcp>
+        </telnet>
+       </ipv4>
+      </vrf>
+     </vrfs>
+    </services>
+   </cinetd>
+  </ip>
+  <interface-configurations xmlns="http://cisco.com/ns/yang/Cisco-IOS-XR-ifmgr-cfg">
+   <interface-configuration>
+    <active>act</active>
+    <interface-name>Loopback2</interface-name>
+    <interface-virtual/>
+    <ipv4-network xmlns="http://cisco.com/ns/yang/Cisco-IOS-XR-ipv4-io-cfg">
+     <addresses>
+      <primary>
+       <address>128.0.0.1</address>
+       <netmask>255.0.0.0</netmask>
+      </primary>
+     </addresses>
+    </ipv4-network>
+    <shutdown nc:operation="remove"/>
+   </interface-configuration>
+  </interface-configurations>
+  <restconf xmlns="http://cisco.com/ns/yang/Cisco-IOS-XR-man-restconf-cfg">
+   <agent>
+    <enable/>
+   </agent>
+  </restconf>
+  <web xmlns="http://cisco.com/ns/yang/Cisco-IOS-XR-man-http-lighttpd-yang-cfg">
+   <server>
+    <service>
+     <restconf>
+      <enable/>
+      <http-port>{{RC_HTTP_PORT}}</http-port>
+      <https-port>{{RC_HTTPS_PORT}}</https-port>
+      <http-enable/>
+     </restconf>
+    </service>
+   </server>
+  </web>
+  <router-static xmlns="http://cisco.com/ns/yang/Cisco-IOS-XR-ip-static-cfg">
+   <default-vrf>
+    <address-family>
+     <vrfipv4>
+      <vrf-unicast>
+       <vrf-prefixes>
+        <vrf-prefix>
+         <prefix>0.0.0.0</prefix>
+         <prefix-length>0</prefix-length>
+         <vrf-route>
+          <vrf-next-hop-table>
+           <vrf-next-hop-interface-name-next-hop-address>
+            <interface-name>MgmtEth0/RP0/CPU0/0</interface-name>
+            <next-hop-address>{{BRIDGE_IP}}</next-hop-address>
+           </vrf-next-hop-interface-name-next-hop-address>
+          </vrf-next-hop-table>
+         </vrf-route>
+        </vrf-prefix>
+       </vrf-prefixes>
+      </vrf-unicast>
+     </vrfipv4>
+    </address-family>
+   </default-vrf>
+  </router-static>
+</config>"""),
+
 }
 
 
@@ -644,7 +726,13 @@ if __name__ == '__main__':
     parser.add_argument('-v', '--verbose', action='store_true',
                         help="Do I really need to explain?")
     parser.add_argument('--default-op', type=str, default='merge',
-                        help="The NETCONF default operatiopn to use (merge by default")
+                        help="The NETCONF default operation to use (merge by default)")
+    parser.add_argument('--bridge-ip', type=str,
+                        help="Bridge IP address for enabling RESTCONF static route")
+    parser.add_argument('--rc-http-port', type=int, default=115,
+                        help="HTTP port for RESTCONF")
+    parser.add_argument('--rc-https-port', type=int, default=116,
+                        help="HTTPS port for RESTCONF")
 
     # Only one type of filter
     g = parser.add_mutually_exclusive_group()
@@ -693,6 +781,17 @@ if __name__ == '__main__':
         args.filter = '<bgp xmlns="http://openconfig.net/yang/bgp"/>'
 
     #
+    # set up various keyword arguments
+    #
+    kwargs = {}
+    if args.bridge_ip:
+        kwargs['BRIDGE_IP'] = args.bridge_ip
+    if args.rc_http_port:
+        kwargs['RC_HTTP_PORT'] = args.rc_http_port
+    if args.rc_https_port:
+        kwargs['RC_HTTPS_PORT'] = args.rc_https_port
+
+    #
     # Could use this extra param instead of the last four arguments
     # specified below:
     #
@@ -731,10 +830,10 @@ if __name__ == '__main__':
     elif args.add_static_route:
         add_static_route_default_vrf(m, '', '', '', '', '')
     elif args.shut:
-        do_template(m, shut)
+        do_template(m, shut, **kwargs)
     elif args.no_shut:
-        do_template(m, no_shut)
+        do_template(m, no_shut, **kwargs)
     elif args.do_edit:
-        do_template(m, named_templates[args.do_edit])
+        do_template(m, named_templates[args.do_edit], **kwargs)
     elif args.do_edits:
-        do_templates(m, args.do_edits, default_op=args.default_op)
+        do_templates(m, args.do_edits, default_op=args.default_op, **kwargs)
