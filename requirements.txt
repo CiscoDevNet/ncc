@@ -1,7 +1,6 @@
 BeautifulSoup>=3.2.1
 Jinja2>=2.8
 MarkupSafe>=0.23
-jupyter>=1.0.0
 lxml>=3.6.0
 ncclient>=0.5.2
 pyang>=1.6
