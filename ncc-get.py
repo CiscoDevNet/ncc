@@ -17,11 +17,11 @@ def get(m, filter=None):
         
 if __name__ == '__main__':
 
-    parser = ArgumentParser(description='Provide your get parameters:')
+    parser = ArgumentParser(description="Provide your netconf 'get' parameters:")
 
     # Input parameters
     parser.add_argument('--host', type=str, required=True,
-                        help="The device IP or DN")
+                        help="The device IP")
     parser.add_argument('-u', '--username', type=str, default='cisco',
                         help="Go on, guess!")
     parser.add_argument('-p', '--password', type=str, default='cisco',
