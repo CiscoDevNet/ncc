@@ -7,10 +7,10 @@ import logging
 from BeautifulSoup import BeautifulStoneSoup
 
 def get_schema(host, port, user, passwd, schema, version):
-    with manager.connect(timeout=120, host=host, port=port, username=user, password=passwd, device_params={'name':"iosxr"}) as m:
+    with manager.connect(timeout=600, host=host, port=port, username=user, password=passwd, device_params={'name':"iosxr"}) as m:
         try:
             c = m.get_schema(schema, version=version)
-            print BeautifulStoneSoup(c.xml, convertEntities=BeautifulStoneSoup.HTML_ENTITIES).find('data').getText()
+            print(c.data)
         except RPCError as e:
             print >>sys.stderr, 'Failed to get schema {} || RPCError: severity={}, tag={}, message={}'.format(
                 schema, e.severity, e.tag, e.message)
