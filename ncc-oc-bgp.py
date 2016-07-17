@@ -23,9 +23,9 @@ LOGGING_TO_ENABLE = [
 #
 named_filters = {
     
-    'acls-all': '''<ipv4-acl-and-prefix-list xmlns="http://cisco.com/ns/yang/Cisco-IOS-XR-ipv4-acl-cfg"/>''',
+    'acls-all': Template('''<ipv4-acl-and-prefix-list xmlns="http://cisco.com/ns/yang/Cisco-IOS-XR-ipv4-acl-cfg"/>'''),
     
-    'acl-666': '''<ipv4-acl-and-prefix-list xmlns="http://cisco.com/ns/yang/Cisco-IOS-XR-ipv4-acl-cfg">
+    'acl-666': Template('''<ipv4-acl-and-prefix-list xmlns="http://cisco.com/ns/yang/Cisco-IOS-XR-ipv4-acl-cfg">
   <accesses>
     <access>
       <access-list-name>RUBBLE1</access-list-name>
@@ -39,16 +39,45 @@ named_filters = {
       </access-list-entries>
     </access>
   </accesses>
-</ipv4-acl-and-prefix-list>''',
+</ipv4-acl-and-prefix-list>'''),
 
-    'oc-bgp': '''<bgp xmlns="http://openconfig.net/yang/bgp"/>''',
+    'oc-bgp': Template('''<bgp xmlns="http://openconfig.net/yang/bgp"/>'''),
 
-    'intf-brief': '''<interfaces>
+    'intf-brief-all': Template('''<interfaces xmlns="http://cisco.com/ns/yang/Cisco-IOS-XR-pfi-im-cmd-oper">
+  <interface-briefs/>
+</interfaces>'''),
+    
+    'intf-brief': Template('''<interfaces xmlns="http://cisco.com/ns/yang/Cisco-IOS-XR-pfi-im-cmd-oper">
   <interface-briefs>
     <interface-brief>
-      <interface-name>{{IFNAME}}</interface-name>
+      <interface-name>{{INTF_NAME}}</interface-name>
     </interface-brief>
-</interfaces>'''
+</interfaces>'''),
+
+    'intf-stats': Template('''<interfaces xmlns="http://cisco.com/ns/yang/Cisco-IOS-XR-pfi-im-cmd-oper">
+  <interface-xr>
+    <interface>
+      <interface-name>{{INTF_NAME}}</interface-name>
+      <interface-statistics/>
+    </interface>
+  </interface-xr>
+</interfaces>'''),
+    
+    'intf-stats-limited': Template('''<interfaces xmlns="http://cisco.com/ns/yang/Cisco-IOS-XR-pfi-im-cmd-oper">
+  <interface-xr>
+    <interface>
+      <interface-name>{{INTF_NAME}}</interface-name>
+      <interface-statistics>
+        <full-interface-stats>
+          <packets-received/>
+          <bytes-received/>
+          <packets-sent/>
+          <bytes-sent/>
+        </full-interface-stats>
+      </interface-statistics>
+    </interface>
+  </interface-xr>
+</interfaces>'''),
     
 }
 
@@ -776,6 +805,8 @@ if __name__ == '__main__':
     # Various operation parameters. Put int a kwargs structure for use
     # in template rendering.
     #
+    parser.add_argument('-i', '--intf-name', type=str, 
+                        help="Specify an interface for general use in templates (no format validation)")
     parser.add_argument('-n', '--neighbor-addr', type=str, 
                         help="Specify a neighbor address (no format validation)")
     parser.add_argument('-r', '--remote-as', type=str, 
@@ -846,15 +877,11 @@ if __name__ == '__main__':
             logger.setLevel(logging.DEBUG)
 
     #
-    # This populates the filter if it's a canned filter.
-    #
-    if args.named_filter:
-        args.filter = named_filters[args.named_filter]
-
-    #
     # set up various keyword arguments that have specific arguments
     #
     kwargs = {}
+    if args.intf_name:
+        kwargs['INTF_NAME'] = args.intf_name
     if args.neighbor_addr:
         kwargs['NEIGHBOR_ADDR'] = args.neighbor_addr
     if args.remote_as:
@@ -867,6 +894,12 @@ if __name__ == '__main__':
         kwargs['RC_HTTP_PORT'] = args.rc_http_port
     if args.rc_https_port:
         kwargs['RC_HTTPS_PORT'] = args.rc_https_port
+
+    #
+    # This populates the filter if it's a canned filter.
+    #
+    if args.named_filter:
+        args.filter = named_filters[args.named_filter].render(**kwargs)
 
     #
     # Could use this extra param instead of the last four arguments
