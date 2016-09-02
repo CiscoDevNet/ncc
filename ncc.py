@@ -12,7 +12,7 @@ import logging
 # now. SSH disabled as it is just too much right now.
 #
 LOGGING_TO_ENABLE = [
-    # 'ncclient.transport.ssh',
+    'ncclient.transport.ssh',
     'ncclient.transport.session',
     'ncclient.operations.rpc'
 ]
@@ -22,7 +22,37 @@ LOGGING_TO_ENABLE = [
 # Some named filters to help people out
 #
 named_filters = {
-    
+
+    'lldp-all': Template('''
+<lldp xmlns="http://cisco.com/ns/yang/Cisco-IOS-XR-ethernet-lldp-cfg"/>
+'''),
+
+    'vrrp-ipv4-all': Template('''
+<vrrp xmlns="http://cisco.com/ns/yang/Cisco-IOS-XR-ipv4-vrrp-cfg"/>
+'''),
+
+    'qos-oper-intf': Template('''
+<qos xmlns="http://cisco.com/ns/yang/Cisco-IOS-XR-qos-ma-oper">
+  <interface-table>
+    <interface>
+      <interface-name>{{INTF_NAME}}</interface-name>
+      <input/>
+    </interface>
+  </interface-table>
+</qos>
+'''),
+
+    'qos-oper-all': Template('''
+<qos xmlns="http://cisco.com/ns/yang/Cisco-IOS-XR-qos-ma-oper">
+  <interface-table>
+    <interface>
+      <input/>
+      <output/>
+    </interface>
+  </interface-table>
+</qos>
+'''),
+
     'acls-all': Template('''<ipv4-acl-and-prefix-list xmlns="http://cisco.com/ns/yang/Cisco-IOS-XR-ipv4-acl-cfg"/>'''),
     
     'acl-666': Template('''<ipv4-acl-and-prefix-list xmlns="http://cisco.com/ns/yang/Cisco-IOS-XR-ipv4-acl-cfg">
@@ -78,7 +108,8 @@ named_filters = {
     </interface>
   </interface-xr>
 </interfaces>'''),
-    
+
+    'telem-all': Template('''<telemetry-model-driven xmlns="http://cisco.com/ns/yang/Cisco-IOS-XR-telemetry-model-driven-cfg"/>'''),
 }
 
 
@@ -86,7 +117,26 @@ named_filters = {
 # Named templates to use with --do-edit and --do-edits
 #
 named_templates = {
-    
+    #
+    # simple LLDP
+    #
+    'lldp-basic': Template('''<config>
+  <lldp xmlns="http://cisco.com/ns/yang/Cisco-IOS-XR-ethernet-lldp-cfg">
+   <timer>10</timer>
+  </lldp>
+</config>'''),
+
+    'lldp-del': Template('''<config>
+  <lldp xmlns="http://cisco.com/ns/yang/Cisco-IOS-XR-ethernet-lldp-cfg" nc:operation="remove"/>
+</config>'''),
+
+    'lldp-basic-and-del': Template('''<config>
+  <lldp xmlns="http://cisco.com/ns/yang/Cisco-IOS-XR-ethernet-lldp-cfg">
+   <timer>10</timer>
+  </lldp>
+  <lldp xmlns="http://cisco.com/ns/yang/Cisco-IOS-XR-ethernet-lldp-cfg" nc:operation="remove"/>
+</config>'''),
+
     #
     # Basic OC BGP  template
     #
@@ -641,7 +691,7 @@ named_templates = {
     # Enable RESTCONF on a capable box. Needs to have the IP address
     # of the bridge attached to the MgmtEth.
     #
-    'restconf_enable': Template('''<config>
+    'restconf-enable': Template('''<config>
   <ip xmlns="http://cisco.com/ns/yang/Cisco-IOS-XR-ip-tcp-cfg">
    <cinetd>
     <services>
@@ -717,6 +767,71 @@ named_templates = {
     </address-family>
    </default-vrf>
   </router-static>
+</config>'''),
+
+    #
+    # Telemetry stuff
+    #
+    'telem-cr': Template('''
+<config>
+  <telemetry-model-driven xmlns="http://cisco.com/ns/yang/Cisco-IOS-XR-telemetry-model-driven-cfg">
+   <destination-groups>
+    <destination-group>
+     <destination-id>DGroup1</destination-id>
+     <destinations>
+      <destination>
+       <address-family>ipv6</address-family>
+       <ipv6>
+        <ipv6-address>2001:db8:0:100::15</ipv6-address>
+        <destination-port>5432</destination-port>
+        <encoding>self-describing-gpb</encoding>
+        <protocol>
+         <protocol>tcp</protocol>
+         <tls-hostname></tls-hostname>
+         <no-tls>0</no-tls>
+        </protocol>
+       </ipv6>
+      </destination>
+     </destinations>
+    </destination-group>
+   </destination-groups>
+  </telemetry-model-driven>
+</config>'''),
+
+    'telem-del-ipv6-fails': Template('''
+<config>
+  <telemetry-model-driven xmlns="http://cisco.com/ns/yang/Cisco-IOS-XR-telemetry-model-driven-cfg">
+   <destination-groups>
+    <destination-group>
+     <destination-id>DGroup1</destination-id>
+     <destinations>
+      <destination nc:operation="delete">
+       <address-family>ipv6</address-family>
+      </destination>
+     </destinations>
+    </destination-group>
+   </destination-groups>
+  </telemetry-model-driven>
+</config>'''),
+
+    'telem-del-ipv6-works': Template('''
+<config>
+  <telemetry-model-driven xmlns="http://cisco.com/ns/yang/Cisco-IOS-XR-telemetry-model-driven-cfg">
+   <destination-groups>
+    <destination-group>
+     <destination-id>DGroup1</destination-id>
+     <destinations>
+      <destination>
+       <address-family>ipv6</address-family>
+       <ipv6 nc:operation="delete">
+        <ipv6-address>2001:db8:0:100::15</ipv6-address>
+        <destination-port>5432</destination-port>
+       </ipv6>
+      </destination>
+     </destinations>
+    </destination-group>
+   </destination-groups>
+  </telemetry-model-driven>
 </config>'''),
 
 }

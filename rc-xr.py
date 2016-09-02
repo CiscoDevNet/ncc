@@ -8,7 +8,8 @@ from requests.auth import HTTPBasicAuth
 def send_request(protocol, host, port, username, password):
     '''Generate a simple RESTCONF request.
     '''
-    url = "{}://{}:{}/restconf/data/Cisco-IOS-XR-ifmgr-cfg:interface-configurations/interface-configuration=act,GigabitEthernet0%2f0%2f0%2f0/description".format(
+    # url = "{}://{}:{}/restconf/data/Cisco-IOS-XR-ifmgr-cfg:interface-configurations/interface-configuration=act,GigabitEthernet0%2f0%2f0%2f0/description".format(
+    url = "{}://{}:{}/restconf/data/Cisco-IOS-XR-ifmgr-cfg:interface-configurations".format(
         protocol, host, port)
     try:
         response = requests.get(
