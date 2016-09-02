@@ -53,6 +53,8 @@ named_filters = {
 </qos>
 '''),
 
+    'ietf-intfs-state': Template('''<interfaces-state xmlns="urn:ietf:params:xml:ns:yang:ietf-interfaces"/>'''),
+    
     'acls-all': Template('''<ipv4-acl-and-prefix-list xmlns="http://cisco.com/ns/yang/Cisco-IOS-XR-ipv4-acl-cfg"/>'''),
     
     'acl-666': Template('''<ipv4-acl-and-prefix-list xmlns="http://cisco.com/ns/yang/Cisco-IOS-XR-ipv4-acl-cfg">
@@ -135,6 +137,17 @@ named_templates = {
    <timer>10</timer>
   </lldp>
   <lldp xmlns="http://cisco.com/ns/yang/Cisco-IOS-XR-ethernet-lldp-cfg" nc:operation="remove"/>
+</config>'''),
+
+    #
+    # XE-specific
+    #
+    'xe-enable-polling': Template('''<config>
+  <netconf-yang xmlns="http://cisco.com/yang/cisco-self-mgmt">
+    <cisco-odm xmlns="http://cisco.com/yang/cisco-odm">
+      <polling-enable>true</polling-enable>
+    </cisco-odm>
+  </netconf-yang>
 </config>'''),
 
     #
@@ -843,11 +856,23 @@ def do_template(m, t, **kwargs):
 
     '''
     data = t.render(kwargs)
+
+    #
+    # For IOS-XR
+    #
     m.edit_config(data,
                   format='xml',
                   target='candidate',
                   default_operation='merge')
     m.commit()
+
+    #
+    # For IOS-XE
+    #
+    # m.edit_config(data,
+    #               format='xml',
+    #               target='running',
+    #               default_operation='merge')
 
 
 def do_templates(m, t_list, default_op='merge', **kwargs):
