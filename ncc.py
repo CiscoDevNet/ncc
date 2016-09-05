@@ -78,6 +78,32 @@ named_filters = {
     </interface>
   </interface-xr>
 </interfaces>'''),
+
+    'oc-intf': Template('''<interfaces xmlns="http://openconfig.net/yang/interfaces"/>'''),
+
+    'oc-intf-named': Template('''<interfaces xmlns="http://openconfig.net/yang/interfaces">
+  <interface>
+    <name>{{INTF_NAME}}</name>
+  </interface>
+</interfaces>'''),
+    
+    'oc-subintf-named': Template('''<interfaces xmlns="http://openconfig.net/yang/interfaces">
+  <interface>
+    <name>{{INTF_NAME}}</name>
+    <subinterfaces/>
+  </interface>
+</interfaces>'''),
+    
+    'oc-subintf-named-and-indexed': Template('''<interfaces xmlns="http://openconfig.net/yang/interfaces">
+  <interface>
+    <name>{{INTF_NAME}}</name>
+    <subinterfaces>
+      <subinterface>
+        <index>{{SUBINTF_INDEX}}</index>
+      </subinterface>
+    </subinterfaces>
+  </interface>
+</interfaces>'''),
     
 }
 
@@ -807,6 +833,8 @@ if __name__ == '__main__':
     #
     parser.add_argument('-i', '--intf-name', type=str, 
                         help="Specify an interface for general use in templates (no format validation)")
+    parser.add_argument('-s', '--subintf-index', type=int, 
+                        help="Specify sub-interface index for general use in openconfig templates (no format validation)")
     parser.add_argument('-n', '--neighbor-addr', type=str, 
                         help="Specify a neighbor address (no format validation)")
     parser.add_argument('-r', '--remote-as', type=str, 
@@ -882,6 +910,8 @@ if __name__ == '__main__':
     kwargs = {}
     if args.intf_name:
         kwargs['INTF_NAME'] = args.intf_name
+    if args.subintf_index:
+        kwargs['SUBINTF_INDEX'] = args.subintf_index
     if args.neighbor_addr:
         kwargs['NEIGHBOR_ADDR'] = args.neighbor_addr
     if args.remote_as:
@@ -914,10 +944,11 @@ if __name__ == '__main__':
                          timeout=args.timeout,
                          username=args.username,
                          password=args.password,
-                         allow_agent=False,
-                         look_for_keys=False,
-                         hostkey_verify=False,
-                         unknown_host_cb=iosxr_unknown_host_cb)
+                         device_params={'name': 'iosxr'} )
+                         #allow_agent=False,
+                         #look_for_keys=False,
+                         #hostkey_verify=False,
+                         #unknown_host_cb=iosxr_unknown_host_cb)
 
     if args.get_running:
         if args.xpath:
