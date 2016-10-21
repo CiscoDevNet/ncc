@@ -6,7 +6,6 @@ from jinja2 import Template
 from lxml import etree
 import logging
 
-
 #
 # Add things people want logged here. Just various netconf things for
 # now. SSH disabled as it is just too much right now.
@@ -245,6 +244,49 @@ named_templates = {
          </vrf-route>
         </vrf-prefix>
         <vrf-prefix>
+         <prefix>10.1.2.0</prefix>
+         <prefix-length>24</prefix-length>
+         <vrf-route>
+          <vrf-next-hop-table>
+           <vrf-next-hop-interface-name>
+            <interface-name>Loopback0</interface-name>
+           </vrf-next-hop-interface-name>
+          </vrf-next-hop-table>
+         </vrf-route>
+        </vrf-prefix>
+       </vrf-prefixes>
+      </vrf-unicast>
+     </vrfipv4>
+    </address-family>
+   </default-vrf>
+  </router-static>
+</config>'''),
+
+
+    #
+    # Add static routes using the XR native model. Depends on Loopback0
+    # existing.
+    #
+    'del_static_route_default': Template('''<config>
+  <router-static xmlns="http://cisco.com/ns/yang/Cisco-IOS-XR-ip-static-cfg">
+   <default-vrf>
+    <address-family>
+     <vrfipv4>
+      <vrf-unicast>
+       <vrf-prefixes>
+        <vrf-prefix nc:operation="remove">
+         <prefix>10.1.1.0</prefix>
+         <prefix-length>24</prefix-length>
+         <vrf-route>
+          <vrf-next-hop-table>
+           <vrf-next-hop-interface-name-next-hop-address>
+            <interface-name>Loopback0</interface-name>
+            <next-hop-address>10.10.10.1</next-hop-address>
+           </vrf-next-hop-interface-name-next-hop-address>
+          </vrf-next-hop-table>
+         </vrf-route>
+        </vrf-prefix>
+        <vrf-prefix nc:operation="remove">
          <prefix>10.1.2.0</prefix>
          <prefix-length>24</prefix-length>
          <vrf-route>
@@ -902,10 +944,9 @@ def do_template(m, t, **kwargs):
 
 
 def do_templates(m, t_list, default_op='merge', **kwargs):
-    '''Execute a list of templates, using the kwargs passed in to
+    """Execute a list of templates, using the kwargs passed in to
     complete the rendering.
-
-    '''
+    """
     for t in t_list:
         tmpl = named_templates[t]
         data = tmpl.render(kwargs)
@@ -917,32 +958,31 @@ def do_templates(m, t_list, default_op='merge', **kwargs):
 
 
 def get_running_config(m, filter=None, xpath=None):
-    '''Get running config with a passed in filter. If both types of
+    """Get running config with a passed in filter. If both types of
     filter are passed in for some reason, the subtree filter "wins".
-
-    '''
+    """
+    import time
     if filter and len(filter) > 0:
-        c = m.get_config(source='running', filter=('subtree', filter)).data_xml
+        c = m.get_config(source='running', filter=('subtree', filter))
     elif xpath and len(xpath)>0:
-        c = m.get_config(source='running', filter=('xpath', xpath)).data_xml
+        c = m.get_config(source='running', filter=('xpath', xpath))
     else:
-        c = m.get_config(source='running').data_xml
-    print etree.tostring(etree.fromstring(c), pretty_print=True)
+        c = m.get_config(source='running')
+    print(etree.tostring(c.data, pretty_print=True))
         
         
 def get(m, filter=None, xpath=None):
-    '''Get state with a passed in filter. If both types of filter are
+    """Get state with a passed in filter. If both types of filter are
     passed in for some reason, the subtree filter "wins".
-
-    '''
+    """
     if filter and len(filter) > 0:
-        c = m.get(filter=('subtree', filter)).data_xml
+        c = m.get(filter=('subtree', filter))
     elif xpath and len(xpath)>0:
-        c = m.get(filter=('xpath', xpath)).data_xml
+        c = m.get(filter=('xpath', xpath))
     else:
-        print ("Need a filter for oper get!")
+        print("Need a filter for oper get!")
         return
-    print etree.tostring(etree.fromstring(c), pretty_print=True)
+    print(etree.tostring(c.data, pretty_print=True))
         
         
 if __name__ == '__main__':
