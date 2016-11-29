@@ -74,6 +74,8 @@ named_filters = {
 
     'oc-bgp': Template('''<bgp xmlns="http://openconfig.net/yang/bgp"/>'''),
 
+    'oc-intf': Template('''<interfaces xmlns="http://openconfig.net/yang/interfaces"/>'''),
+
     'intf-brief-all': Template('''<interfaces xmlns="http://cisco.com/ns/yang/Cisco-IOS-XR-pfi-im-cmd-oper">
   <interface-briefs/>
 </interfaces>'''),
@@ -144,6 +146,33 @@ named_filters = {
 # Named templates to use with --do-edit and --do-edits
 #
 named_templates = {
+
+    #
+    # set openconfig interface description
+    #
+    'oc-set-descr': Template('''<config>
+  <interfaces xmlns="http://openconfig.net/yang/interfaces">
+   <interface>
+    <name>GigabitEthernet0/0/0/1</name>
+    <config>
+     <type xmlns:idx="urn:ietf:params:xml:ns:yang:iana-if-type">idx:ethernetCsmacd</type>
+     <description>Configured by Widget</description>
+    </config>
+   </interface>
+  </interfaces>
+</config>'''),
+    
+    'oc-set-descr-broken': Template('''<config>
+  <interfaces xmlns="http://openconfig.net/yang/interfaces">
+   <interface>
+    <name>GigabitEthernet0/0/0/1</name>
+    <config>
+     <description>Configured by Widget</description>
+    </config>
+   </interface>
+  </interfaces>
+</config>'''),
+    
     #
     # simple LLDP
     #

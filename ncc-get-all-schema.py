@@ -11,6 +11,7 @@ from ncclient.operations.rpc import RPCError
 from BeautifulSoup import BeautifulSoup
 import pyang
 
+
 #
 # The get filter we need to retrieve the schemas a device claims to have
 #
@@ -120,20 +121,20 @@ if __name__ == '__main__':
     schema_tree = get(mgr, schemas_filter)
     soup = BeautifulSoup(schema_tree)
     schema_list = [s.getText() for s in soup.findAll('identifier')]
-
+    
     #
     # check the schema list against server capabilities
     #
     not_in_schemas = set()
     for c in mgr.server_capabilities:
-        model = re.search('module=([^&]*)&', c)
+        model = re.search('module=([^&]*)', c)
         if model is not None:
             m = model.group(1)
             if m not in schema_list:
                 not_in_schemas.add(m)
     if len(not_in_schemas) > 0:
         print('The following models are advertised in capabilities but are not in schemas tree:')
-        for m in not_in_schemas:
+        for m in sorted(not_in_schemas):
             print '    {}'.format(m)
     
     #
