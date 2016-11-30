@@ -1,0 +1,25 @@
+<config>
+  <router-static xmlns="http://cisco.com/ns/yang/Cisco-IOS-XR-ip-static-cfg">
+   <default-vrf>
+    <address-family>
+     <vrfipv4>
+      <vrf-unicast>
+       <vrf-prefixes>
+        <vrf-prefix>
+         <prefix>10.1.4.0</prefix>
+         <prefix-length>24</prefix-length>
+         <vrf-route>
+          <vrf-next-hop-table>
+           <vrf-next-hop>
+            <interface-name>Loopback0</interface-name>
+           </vrf-next-hop>
+          </vrf-next-hop-table>
+         </vrf-route>
+        </vrf-prefix>
+       </vrf-prefixes>
+      </vrf-unicast>
+     </vrfipv4>
+    </address-family>
+   </default-vrf>
+  </router-static>
+</config>

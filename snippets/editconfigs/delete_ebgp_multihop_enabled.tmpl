@@ -1,0 +1,14 @@
+<config>
+  <bgp xmlns="http://openconfig.net/yang/bgp">
+   <neighbors>
+    <neighbor>
+     <neighbor-address>192.168.1.222</neighbor-address>
+     <ebgp-multihop>
+      <config>
+       <enabled nc:operation="delete"/>
+      </config>
+     </ebgp-multihop>
+    </neighbor>
+   </neighbors>
+  </bgp>
+</config>

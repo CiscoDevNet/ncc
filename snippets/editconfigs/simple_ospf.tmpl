@@ -1,0 +1,22 @@
+<config>
+<ospf xmlns="http://cisco.com/ns/yang/Cisco-IOS-XR-ipv4-ospf-cfg">
+ <processes>
+  <process>
+   <process-name>apphost</process-name>
+   <default-vrf>
+    <area-addresses>
+     <area-area-id>
+      <area-id>0</area-id>
+      <name-scopes>
+       <name-scope>
+        <interface-name>GigabitEthernet0/0/0/0</interface-name>
+        <cost>30</cost>
+       </name-scope>
+      </name-scopes>
+      </area-area-id>
+     </area-addresses>
+    </default-vrf>
+  </process>
+ </processes>
+</ospf>
+</config>

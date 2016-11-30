@@ -1,0 +1,21 @@
+<config>
+  <l2vpn xmlns="http://cisco.com/ns/yang/Cisco-IOS-XR-l2vpn-cfg" nc:operation="merge">
+    <database>
+      <bridge-domain-groups>
+	<bridge-domain-group xmlns:a="urn:ietf:params:xml:ns:netconf:base:1.0">
+	  <name>SERVICE</name>
+	  <bridge-domains>
+	    <bridge-domain>
+	      <name>ESP-vPE1</name>
+	      <bd-attachment-circuits>
+		<bd-attachment-circuit>
+		  <name>Bundle-Ether46001.1</name>
+		</bd-attachment-circuit>
+	      </bd-attachment-circuits>
+	    </bridge-domain>
+	  </bridge-domains>
+	</bridge-domain-group>
+      </bridge-domain-groups>
+    </database>
+  </l2vpn>
+</config>

@@ -1,0 +1,17 @@
+<config>
+  <policy-manager xmlns="http://cisco.com/ns/yang/Cisco-IOS-XR-asr9k-policymgr-cfg">
+   <class-maps>
+    <class-map>
+     <type>qos</type>
+     <name>EINARNN_5</name>
+     <class-map-mode-match-any/>
+     <match>
+      <ipv4-dscp>af21</ipv4-dscp>
+      <ipv4-dscp>af22</ipv4-dscp>
+      <ipv4-dscp>cs2</ipv4-dscp>
+      <ipv4-dscp>cs6</ipv4-dscp>
+     </match>
+    </class-map>
+   </class-maps>
+  </policy-manager>
+</config>

@@ -1,0 +1,77 @@
+<config>
+  <ip xmlns="http://cisco.com/ns/yang/Cisco-IOS-XR-ip-tcp-cfg">
+   <cinetd>
+    <services>
+     <vrfs>
+      <vrf>
+       <vrf-name>default</vrf-name>
+       <ipv4>
+        <telnet>
+         <tcp>
+          <maximum-server>35</maximum-server>
+         </tcp>
+        </telnet>
+       </ipv4>
+      </vrf>
+     </vrfs>
+    </services>
+   </cinetd>
+  </ip>
+  <interface-configurations xmlns="http://cisco.com/ns/yang/Cisco-IOS-XR-ifmgr-cfg">
+   <interface-configuration>
+    <active>act</active>
+    <interface-name>Loopback2</interface-name>
+    <interface-virtual/>
+    <ipv4-network xmlns="http://cisco.com/ns/yang/Cisco-IOS-XR-ipv4-io-cfg">
+     <addresses>
+      <primary>
+       <address>128.0.0.1</address>
+       <netmask>255.0.0.0</netmask>
+      </primary>
+     </addresses>
+    </ipv4-network>
+    <shutdown nc:operation="remove"/>
+   </interface-configuration>
+  </interface-configurations>
+  <restconf xmlns="http://cisco.com/ns/yang/Cisco-IOS-XR-man-restconf-cfg">
+   <agent>
+    <enable/>
+   </agent>
+  </restconf>
+  <web xmlns="http://cisco.com/ns/yang/Cisco-IOS-XR-man-http-lighttpd-yang-cfg">
+   <server>
+    <service>
+     <restconf>
+      <enable/>
+      <http-port>{{RC_HTTP_PORT}}</http-port>
+      <https-port>{{RC_HTTPS_PORT}}</https-port>
+      <http-enable/>
+     </restconf>
+    </service>
+   </server>
+  </web>
+  <router-static xmlns="http://cisco.com/ns/yang/Cisco-IOS-XR-ip-static-cfg">
+   <default-vrf>
+    <address-family>
+     <vrfipv4>
+      <vrf-unicast>
+       <vrf-prefixes>
+        <vrf-prefix>
+         <prefix>0.0.0.0</prefix>
+         <prefix-length>0</prefix-length>
+         <vrf-route>
+          <vrf-next-hop-table>
+           <vrf-next-hop-interface-name-next-hop-address>
+            <interface-name>MgmtEth0/RP0/CPU0/0</interface-name>
+            <next-hop-address>{{BRIDGE_IP}}</next-hop-address>
+           </vrf-next-hop-interface-name-next-hop-address>
+          </vrf-next-hop-table>
+         </vrf-route>
+        </vrf-prefix>
+       </vrf-prefixes>
+      </vrf-unicast>
+     </vrfipv4>
+    </address-family>
+   </default-vrf>
+  </router-static>
+</config>

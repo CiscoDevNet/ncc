@@ -1,0 +1,25 @@
+
+<config>
+  <telemetry-model-driven xmlns="http://cisco.com/ns/yang/Cisco-IOS-XR-telemetry-model-driven-cfg">
+   <destination-groups>
+    <destination-group>
+     <destination-id>DGroup1</destination-id>
+     <destinations>
+      <destination>
+       <address-family>ipv6</address-family>
+       <ipv6>
+        <ipv6-address>2001:db8:0:100::15</ipv6-address>
+        <destination-port>5432</destination-port>
+        <encoding>self-describing-gpb</encoding>
+        <protocol>
+         <protocol>tcp</protocol>
+         <tls-hostname></tls-hostname>
+         <no-tls>0</no-tls>
+        </protocol>
+       </ipv6>
+      </destination>
+     </destinations>
+    </destination-group>
+   </destination-groups>
+  </telemetry-model-driven>
+</config>

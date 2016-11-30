@@ -1,0 +1,21 @@
+<config>
+  <policy-manager xmlns="http://cisco.com/ns/yang/Cisco-IOS-XR-asr9k-policymgr-cfg">
+   <class-maps>
+    <class-map>
+     <type>qos</type>
+     <name>EINARNN_6</name>
+     <class-map-mode-match-any/>
+     <match>
+      <ipv4-dscp>42</ipv4-dscp>
+      <ipv4-dscp>44</ipv4-dscp>
+      <ipv4-dscp>45</ipv4-dscp>
+      <ipv4-dscp>46</ipv4-dscp>
+      <ipv6-dscp>42</ipv6-dscp>
+      <ipv6-dscp>44</ipv6-dscp>
+      <ipv6-dscp>45</ipv6-dscp>
+      <ipv6-dscp>46</ipv6-dscp>
+     </match>
+    </class-map>
+   </class-maps>
+  </policy-manager>
+</config>

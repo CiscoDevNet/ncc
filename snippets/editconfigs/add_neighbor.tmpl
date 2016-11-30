@@ -1,0 +1,14 @@
+<config>
+ <bgp xmlns="http://openconfig.net/yang/bgp">
+   <neighbors>
+    <neighbor nc:operation='create'>
+     <neighbor-address>{{NEIGHBOR_ADDR}}</neighbor-address>
+     <config>
+      <neighbor-address>{{NEIGHBOR_ADDR}}</neighbor-address>
+      <peer-as>{{REMOTE_AS}}</peer-as>
+      <description>{{DESCRIPTION}}</description>
+     </config>
+    </neighbor>
+   </neighbors>
+  </bgp>
+</config>
