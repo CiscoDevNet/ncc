@@ -4,12 +4,11 @@
 
 This repository presents:
 
-* A bunch of Python scripts using the ncclient library (0.5.2) to talk to NETCONF-enabled devices.
-    * Older, deprecated scripts kept in the directory [```archived```](archived).
-* A bunch of Jupyter (IPython) Notebooks in the directory [```notebooks```](notebooks).
+* Python scripts using the ncclient library (0.5.2) to talk to NETCONF-enabled devices.
+* Jupyter (IPython) Notebooks in the directory [```notebooks```](notebooks).
+
 
 ## Python Dependencies
-
 
 The package dependencies for the scripts and the jupyter notebooks are listed in ```requirements.txt```, which may be used to install the dependencies thus (note the upgrade to pip; must be running **```pip >= 8.1.2```** to successfully install some dependencies):
 
@@ -115,6 +114,8 @@ optional arguments:
                         Execute a sequence of named templates with an optional
                         default operation and a single commit
 ```
+
+Named subtree filters are stored in [snippets/filters](snippets/filters) and named templates are stored in [snippets/editconfigs](snippets/editconfigs). The naming convention is fairly obvious; templates files end in ```.tmpl```, but when referred to via CLI arguments the extension is ommitted.
 
 
 ## Running The Jupyter Notebooks
