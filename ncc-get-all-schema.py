@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import sys
+import string
 import time
 import logging
 import re
@@ -71,6 +72,12 @@ if __name__ == '__main__':
                         help="Where to write schema files")
     parser.add_argument('-v', '--verbose', action='store_true',
                         help="Do some verbose logging")
+    parser.add_argument('--process-MIBs', action="store_true", default=False,
+                        dest="process_MIBs_sw",
+                        help="Specify this to process advertised MIBs")
+    parser.add_argument('--display-MIBs', action="store_true", default=False,
+                        dest="display_MIBs_sw",
+                        help="Specify this to process and display advertised MIBs")
 
     g = parser.add_mutually_exclusive_group()
     g.add_argument('--start-after', type=str, required=False,
@@ -166,6 +173,19 @@ if __name__ == '__main__':
     yangfiles = [f for f in listdir(args.output_dir) if isfile(join(args.output_dir, f))]
     for fname in yangfiles:
         ctx = pyang.Context(repos)
+        if args.process_MIBs_sw or args.display_MIBs_sw:
+            if "MIB" in fname:
+                mib_name = str(fname).rstrip('.yang')
+                mib_filter = '<'+mib_name+':'+mib_name+' xmlns:'+mib_name+'="urn:ietf:params:xml:ns:yang:smiv2:'+mib_name+'"/>'
+                try:
+                    mib = get(mgr, mib_filter)
+                    if args.display_MIBs_sw:
+                        print mib_name
+                        soup = BeautifulSoup(mib)
+                        print (soup.prettify())
+                except RPCError as e:
+                    print mib_name
+                    print e
         fd = open(args.output_dir+'/'+fname, 'r')
         text = fd.read()
         ctx.add_module(fname, text)
