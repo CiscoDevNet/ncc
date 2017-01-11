@@ -32,8 +32,8 @@ CANDIDATE = False
 # templates and filters unless overriden.
 #
 NCC_DIR, _ = os.path.split(os.path.realpath(__file__))
-named_filters = Environment(loader=FileSystemLoader('%s/snippets/filters' % NCC_DIR))
-named_templates = Environment(loader=FileSystemLoader('%s/snippets/editconfigs' % NCC_DIR))
+#named_filters = Environment(loader=FileSystemLoader('%s/snippets/filters' % NCC_DIR))
+#named_templates = Environment(loader=FileSystemLoader('%s/snippets/editconfigs' % NCC_DIR))
 
 
 def do_template(m, t, default_op='merge', **kwargs):
@@ -56,7 +56,7 @@ def do_template(m, t, default_op='merge', **kwargs):
                       default_operation=default_op)
 
 
-def do_templates(m, t_list, default_op='merge', **kwargs):
+def do_templates(m, t_list, named_templates, default_op='merge', **kwargs):
     """Execute a list of templates, using the kwargs passed in to
     complete the rendering.
     """
@@ -128,6 +128,8 @@ if __name__ == '__main__':
                         help="The NETCONF default operation to use (default 'merge')")
     parser.add_argument('-w', '--where', action='store_true',
                         help="Print where script is and exit")
+    parser.add_argument('--snippetdir', type=str, default='snippets',
+                        help="parent snippet directory")
 
     #
     # Various operation parameters. Put int a kwargs structure for use
@@ -182,6 +184,13 @@ if __name__ == '__main__':
     # Finally, parse the arguments!
     #
     args = parser.parse_args()
+
+    #
+    # setup the templates/filter directory
+    #
+    named_filters = Environment(loader=FileSystemLoader('%s/%s/filters' % (NCC_DIR, args.snippetdir)))
+    named_templates = Environment(loader=FileSystemLoader('%s/%s/editconfigs' % (NCC_DIR, args.snippetdir)))
+
 
     #
     # temp insertion
@@ -276,4 +285,4 @@ if __name__ == '__main__':
     elif args.do_edit:
         do_template(m, named_templates.get_template('%s.tmpl' % args.do_edit), **kwargs)
     elif args.do_edits:
-        do_templates(m, args.do_edits, default_op=args.default_op, **kwargs)
+        do_templates(m, args.do_edits, named_templates, default_op=args.default_op, **kwargs)
