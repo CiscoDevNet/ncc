@@ -47,7 +47,7 @@ def do_template(m, t, default_op='merge', **kwargs):
         m.edit_config(data,
                       format='xml',
                       target='candidate',
-                      default_operation=deault_op)
+                      default_operation=default_op)
         m.commit()
     elif RUNNING:
         m.edit_config(data,
@@ -82,6 +82,7 @@ def get_running_config(m, filter=None, xpath=None):
     filter are passed in for some reason, the subtree filter "wins".
     """
     import time
+    print "filter", filter, "xpath", xpath
     if filter and len(filter) > 0:
         c = m.get_config(source='running', filter=('subtree', filter))
     elif xpath and len(xpath)>0:
@@ -128,7 +129,7 @@ if __name__ == '__main__':
                         help="The NETCONF default operation to use (default 'merge')")
     parser.add_argument('-w', '--where', action='store_true',
                         help="Print where script is and exit")
-    parser.add_argument('--snippetdir', type=str, default='snippets',
+    parser.add_argument('--snippetdir', type=str, default='snippets-xe',
                         help="parent snippet directory")
 
     #
