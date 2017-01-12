@@ -136,7 +136,7 @@ if __name__ == '__main__':
     # Various operation parameters. Put int a kwargs structure for use
     # in template rendering.
     #
-    parser.add_argument('-i', '--intf-name', type=str, 
+    parser.add_argument('-i', '--intf-name', type=str,
                         help="Specify an interface for general use in templates (no format validation)")
     parser.add_argument('-s', '--subintf-index', type=int, 
                         help="Specify sub-interface index for general use in openconfig templates (no format validation)")
@@ -146,6 +146,8 @@ if __name__ == '__main__':
                         help="Specify the neighbor's remote AS (no format validation)")
     parser.add_argument('--description', type=str, 
                         help="BGP neighbor description string (quote it!)")
+    parser.add_argument('--vlan', type=str,
+                        help="VLAN Number")
     parser.add_argument('--rc-bridge-ip', type=str,
                         help="Bridge IP address for enabling RESTCONF static route")
     parser.add_argument('--rc-http-port', type=int, default=115,
@@ -238,6 +240,8 @@ if __name__ == '__main__':
         kwargs['REMOTE_AS'] = args.remote_as
     if args.description:
         kwargs['DESCRIPTION'] = args.description
+    if args.vlan:
+        kwargs['VLAN'] = args.vlan
     if args.rc_bridge_ip:
         kwargs['BRIDGE_IP'] = args.rc_bridge_ip
     if args.rc_http_port:
