@@ -8,6 +8,7 @@ from jinja2 import FileSystemLoader
 from jinja2 import Template
 from lxml import etree
 import logging
+import json
 
 #
 # Add things people want logged here. Just various netconf things for
@@ -32,37 +33,15 @@ CANDIDATE = False
 # templates and filters unless overriden.
 #
 NCC_DIR, _ = os.path.split(os.path.realpath(__file__))
-#named_filters = Environment(loader=FileSystemLoader('%s/snippets/filters' % NCC_DIR))
-#named_templates = Environment(loader=FileSystemLoader('%s/snippets/editconfigs' % NCC_DIR))
 
-
-def do_template(m, t, default_op='merge', **kwargs):
-    '''Execute a template passed in, using the kwargs passed in to
-    complete the rendering.
-
-    '''
-    data = t.render(kwargs)
-
-    if CANDIDATE:
-        m.edit_config(data,
-                      format='xml',
-                      target='candidate',
-                      default_operation=default_op)
-        m.commit()
-    elif RUNNING:
-        m.edit_config(data,
-                      format='xml',
-                      target='running',
-                      default_operation=default_op)
-
-
-def do_templates(m, t_list, named_templates, default_op='merge', **kwargs):
+def do_templates(m, t_list, default_op='merge', **kwargs):
     """Execute a list of templates, using the kwargs passed in to
     complete the rendering.
     """
-    for t in t_list:
-        tmpl = named_templates.get_template('%s.tmpl' % t)
+    for tmpl in t_list:
+
         data = tmpl.render(kwargs)
+        print "data", data
         if CANDIDATE:
             m.edit_config(data,
                           format='xml',
@@ -225,7 +204,7 @@ if __name__ == '__main__':
             f.close()
     else:
         kwargs = {}
-
+    print "KW", kwargs
     #
     # This populates the filter if it's a canned filter.
     #
@@ -253,7 +232,7 @@ if __name__ == '__main__':
         RUNNING = True
     if 'urn:ietf:params:netconf:capability:candidate:1.0' in m.server_capabilities:
         CANDIDATE = True
-    
+
     if args.get_running:
         if args.xpath:
             get_running_config(m, xpath=args.xpath)
@@ -264,10 +243,10 @@ if __name__ == '__main__':
             get(m, xpath=args.xpath)
         else:
             get(m, filter=args.filter)
-    elif args.do_edit:
-        do_template(m, named_templates.get_template('%s.tmpl' % args.do_edit), **kwargs)
     elif args.do_edits:
-        do_templates(m, args.do_edits, named_templates, default_op=args.default_op, **kwargs)
-
+        do_templates( m,
+                      [named_templates.get_template('%s.tmpl' % t) for t in args.do_edits],
+                      default_op=args.default_op,
+                      **kwargs)
     # now clean up
     m.close_session()
