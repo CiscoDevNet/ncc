@@ -8,6 +8,8 @@ from jinja2 import FileSystemLoader
 from jinja2 import Template
 from lxml import etree
 import logging
+import json
+
 
 #
 # Add things people want logged here. Just various netconf things for
@@ -18,6 +20,13 @@ LOGGING_TO_ENABLE = [
     'ncclient.transport.session',
     'ncclient.operations.rpc'
 ]
+
+
+#
+# Capability constants
+#
+NC_WRITABLE_RUNNING = 'urn:ietf:params:netconf:capability:writable-running:1.0'
+NC_CANDIDATE = 'urn:ietf:params:netconf:capability:candidate:1.0'
 
 
 #
@@ -32,28 +41,10 @@ CANDIDATE = False
 # templates and filters unless overriden.
 #
 NCC_DIR, _ = os.path.split(os.path.realpath(__file__))
-named_filters = Environment(loader=FileSystemLoader('%s/snippets/filters' % NCC_DIR))
-named_templates = Environment(loader=FileSystemLoader('%s/snippets/editconfigs' % NCC_DIR))
-
-
-def do_template(m, t, default_op='merge', **kwargs):
-    '''Execute a template passed in, using the kwargs passed in to
-    complete the rendering.
-
-    '''
-    data = t.render(kwargs)
-
-    if CANDIDATE:
-        m.edit_config(data,
-                      format='xml',
-                      target='candidate',
-                      default_operation=deault_op)
-        m.commit()
-    elif RUNNING:
-        m.edit_config(data,
-                      format='xml',
-                      target='running',
-                      default_operation=default_op)
+named_filters = Environment(loader=FileSystemLoader(
+    '%s/snippets/filters' % NCC_DIR))
+named_templates = Environment(loader=FileSystemLoader(
+    '%s/snippets/editconfigs' % NCC_DIR))
 
 
 def do_templates(m, t_list, default_op='merge', **kwargs):
@@ -126,29 +117,15 @@ if __name__ == '__main__':
                         help="Exceedingly verbose logging to the console")
     parser.add_argument('--default-op', type=str, default='merge',
                         help="The NETCONF default operation to use (default 'merge')")
-    parser.add_argument('-w', '--where', action='store_true',
-                        help="Print where script is and exit")
 
     #
-    # Various operation parameters. Put int a kwargs structure for use
-    # in template rendering.
+    # Various operation parameters. These will be put into a kwargs
+    # dictionary for use in template rendering.
     #
-    parser.add_argument('-i', '--intf-name', type=str, 
-                        help="Specify an interface for general use in templates (no format validation)")
-    parser.add_argument('-s', '--subintf-index', type=int, 
-                        help="Specify sub-interface index for general use in openconfig templates (no format validation)")
-    parser.add_argument('-n', '--neighbor-addr', type=str, 
-                        help="Specify a neighbor address (no format validation)")
-    parser.add_argument('-r', '--remote-as', type=str, 
-                        help="Specify the neighbor's remote AS (no format validation)")
-    parser.add_argument('--description', type=str, 
-                        help="BGP neighbor description string (quote it!)")
-    parser.add_argument('--rc-bridge-ip', type=str,
-                        help="Bridge IP address for enabling RESTCONF static route")
-    parser.add_argument('--rc-http-port', type=int, default=115,
-                        help="HTTP port for RESTCONF (default 115)")
-    parser.add_argument('--rc-https-port', type=int, default=116,
-                        help="HTTPS port for RESTCONF (default 116)")
+    parser.add_argument('--params', type=str, 
+                        help="JSON-encoded string of parameters dictionaryfor templates")
+    parser.add_argument('--params-file', type=str,
+                        help="JSON-encoded file of parameters dictionary for templates")
 
     #
     # Only one type of filter allowed.
@@ -162,7 +139,7 @@ if __name__ == '__main__':
                    help="NETCONF XPath filter")
 
     #
-    # Basic, mutually exclusive, operations.
+    # Mutually exclusive operations.
     #
     g = parser.add_mutually_exclusive_group()
     g.add_argument('--list-templates', action='store_true',
@@ -173,8 +150,6 @@ if __name__ == '__main__':
                    help="Get the running config")
     g.add_argument('--get-oper', action='store_true',
                    help="Get oper data")
-    g.add_argument('--do-edit', type=str,
-                   help="Execute a named template")
     g.add_argument('--do-edits', type=str, nargs='+',
                    help="Execute a sequence of named templates with an optional default operation and a single commit")
 
@@ -182,14 +157,6 @@ if __name__ == '__main__':
     # Finally, parse the arguments!
     #
     args = parser.parse_args()
-
-    #
-    # temp insertion
-    #
-    if args.where:
-        print(dir(named_filters))
-        print(named_filters.get_template('intf-brief-all.tmpl').render())
-        sys.exit(0)
         
     #
     # Do the named template/filter listing first, then exit.
@@ -204,6 +171,7 @@ if __name__ == '__main__':
         for k in sorted(iter(named_filters.list_templates())):
             print("  {}".format(k.replace('.tmpl', '')))
         sys.exit(0)
+
     #
     # If the user specified verbose logging, set it up.
     #
@@ -217,29 +185,22 @@ if __name__ == '__main__':
     #
     # set up various keyword arguments that have specific arguments
     #
-    kwargs = {}
-    if args.intf_name:
-        kwargs['INTF_NAME'] = args.intf_name
-    if args.subintf_index:
-        kwargs['SUBINTF_INDEX'] = args.subintf_index
-    if args.neighbor_addr:
-        kwargs['NEIGHBOR_ADDR'] = args.neighbor_addr
-    if args.remote_as:
-        kwargs['REMOTE_AS'] = args.remote_as
-    if args.description:
-        kwargs['DESCRIPTION'] = args.description
-    if args.rc_bridge_ip:
-        kwargs['BRIDGE_IP'] = args.rc_bridge_ip
-    if args.rc_http_port:
-        kwargs['RC_HTTP_PORT'] = args.rc_http_port
-    if args.rc_https_port:
-        kwargs['RC_HTTPS_PORT'] = args.rc_https_port
+    kwargs = None
+    if args.params:
+        kwargs = json.loads(args.params)
+    elif args.params_file:
+        with open(args.params_file) as f:
+            kwargs = json.loads(f.read())
+            f.close()
+    else:
+        kwargs = {}
 
     #
     # This populates the filter if it's a canned filter.
     #
     if args.named_filter:
-        args.filter = named_filters.get_template('%s.tmpl' % args.named_filter).render(**kwargs)
+        args.filter = named_filters.get_template(
+            '%s.tmpl' % args.named_filter).render(**kwargs)
 
     #
     # Could use this extra param instead of the last four arguments
@@ -258,11 +219,19 @@ if __name__ == '__main__':
                          look_for_keys=False,
                          hostkey_verify=False,
                          unknown_host_cb=unknown_host_cb)
-    if 'urn:ietf:params:netconf:capability:writable-running:1.0' in m.server_capabilities:
+
+    #
+    # Extract the key capabilities that determine how we interact with
+    # the device. This script will prefer using candidate config.
+    #
+    if NC_WRITABLE_RUNNING in m.server_capabilities:
         RUNNING = True
-    if 'urn:ietf:params:netconf:capability:candidate:1.0' in m.server_capabilities:
+    if NC_CANDIDATE in m.server_capabilities:
         CANDIDATE = True
-    
+
+    #
+    # Now we actually do something!!
+    #
     if args.get_running:
         if args.xpath:
             get_running_config(m, xpath=args.xpath)
@@ -273,7 +242,13 @@ if __name__ == '__main__':
             get(m, xpath=args.xpath)
         else:
             get(m, filter=args.filter)
-    elif args.do_edit:
-        do_template(m, named_templates.get_template('%s.tmpl' % args.do_edit), **kwargs)
     elif args.do_edits:
-        do_templates(m, args.do_edits, default_op=args.default_op, **kwargs)
+        do_templates( m,
+                      [named_templates.get_template('%s.tmpl' % t) for t in args.do_edits],
+                      default_op=args.default_op,
+                      **kwargs)
+
+    #
+    # Orderly teardown of the netconf session.
+    #
+    m.close_session()

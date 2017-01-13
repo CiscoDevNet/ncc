@@ -56,14 +56,12 @@ A couple of the scripts used to have other names, so, for backwards compatibilit
 The scripts mostly have a fairly common set of options for help, hostname, port, username and password. For example, the [ncc.py](ncc.py) script can be invoked with ```--help```:
 
 ```
-$ ./ncc.py --help
+01:46 $ python ncc.py --help
 usage: ncc.py [-h] [--host HOST] [-u USERNAME] [-p PASSWORD] [--port PORT]
               [--timeout TIMEOUT] [-v] [--default-op DEFAULT_OP]
-              [-i INTF_NAME] [-n NEIGHBOR_ADDR] [-r REMOTE_AS]
-              [--description DESCRIPTION] [--rc-bridge-ip RC_BRIDGE_IP]
-              [--rc-http-port RC_HTTP_PORT] [--rc-https-port RC_HTTPS_PORT]
+              [--params PARAMS] [--params-file PARAMS_FILE]
               [-f FILTER | --named-filter NAMED_FILTER | -x XPATH]
-              [--list-templates | --list-filters | -g | --get-oper | --do-edit DO_EDIT | --do-edits DO_EDITS [DO_EDITS ...]]
+              [--list-templates | --list-filters | -g | --get-oper | --do-edits DO_EDITS [DO_EDITS ...]]
 
 Select your NETCONF operation and parameters:
 
@@ -83,22 +81,11 @@ optional arguments:
   -v, --verbose         Exceedingly verbose logging to the console
   --default-op DEFAULT_OP
                         The NETCONF default operation to use (default 'merge')
-  -i INTF_NAME, --intf-name INTF_NAME
-                        Specify an interface for general use in templates (no
-                        format validation)
-  -n NEIGHBOR_ADDR, --neighbor-addr NEIGHBOR_ADDR
-                        Specify a neighbor address (no format validation)
-  -r REMOTE_AS, --remote-as REMOTE_AS
-                        Specify the neighbor's remote AS (no format
-                        validation)
-  --description DESCRIPTION
-                        BGP neighbor description string (quote it!)
-  --rc-bridge-ip RC_BRIDGE_IP
-                        Bridge IP address for enabling RESTCONF static route
-  --rc-http-port RC_HTTP_PORT
-                        HTTP port for RESTCONF (default 115)
-  --rc-https-port RC_HTTPS_PORT
-                        HTTPS port for RESTCONF (default 116)
+  --params PARAMS       JSON-encoded string of parameters dictionaryfor
+                        templates
+  --params-file PARAMS_FILE
+                        JSON-encoded file of parameters dictionary for
+                        templates
   -f FILTER, --filter FILTER
                         NETCONF subtree filter
   --named-filter NAMED_FILTER
@@ -109,7 +96,6 @@ optional arguments:
   --list-filters        List out named filters embedded in script
   -g, --get-running     Get the running config
   --get-oper            Get oper data
-  --do-edit DO_EDIT     Execute a named template
   --do-edits DO_EDITS [DO_EDITS ...]
                         Execute a sequence of named templates with an optional
                         default operation and a single commit
@@ -117,6 +103,72 @@ optional arguments:
 
 Named subtree filters are stored in [snippets/filters](snippets/filters) and named templates are stored in [snippets/editconfigs](snippets/editconfigs). The naming convention is fairly obvious; templates files end in ```.tmpl```, but when referred to via CLI arguments the extension is ommitted.
 
+The snippets for both edit config messages and named filters now support a JSON format for specifying parameters either on the command line of in a provided file. For example, we may have the filter snippet in file ```intf-brief.tmpl```:
+
+```
+<interfaces xmlns="http://cisco.com/ns/yang/Cisco-IOS-XR-pfi-im-cmd-oper">
+  <interface-briefs>
+    <interface-brief>
+      <interface-name>{{INTF_NAME}}</interface-name>
+    </interface-brief>
+</interfaces>
+```
+
+Then, run against IOS-XR:
+
+```
+$ python ncc.py --host=192.239.42.222 --get-oper --named-filter intf-brief --params '{"INTF_NAME":"GigabitEthernet0/0/0/0"}'
+<data xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0">
+  <interfaces xmlns="http://cisco.com/ns/yang/Cisco-IOS-XR-pfi-im-cmd-oper">
+   <interface-briefs>
+    <interface-brief>
+     <interface-name>GigabitEthernet0/0/0/0</interface-name>
+     <interface>GigabitEthernet0/0/0/0</interface>
+     <type>IFT_GETHERNET</type>
+     <state>im-state-admin-down</state>
+     <actual-state>im-state-admin-down</actual-state>
+     <line-state>im-state-admin-down</line-state>
+     <actual-line-state>im-state-admin-down</actual-line-state>
+     <encapsulation>ether</encapsulation>
+     <encapsulation-type-string>ARPA</encapsulation-type-string>
+     <mtu>1514</mtu>
+     <sub-interface-mtu-overhead>0</sub-interface-mtu-overhead>
+     <l2-transport>false</l2-transport>
+     <bandwidth>1000000</bandwidth>
+    </interface-brief>
+   </interface-briefs>
+  </interfaces>
+ </data>
+```
+
+Or:
+
+```
+$ echo '{"INTF_NAME":"GigabitEthernet0/0/0/0"}' > test_params.json
+$ python ncc.py --host=192.239.42.222 --get-oper --named-filter intf-brief --params-file test_params.json
+<data xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0">
+  <interfaces xmlns="http://cisco.com/ns/yang/Cisco-IOS-XR-pfi-im-cmd-oper">
+   <interface-briefs>
+    <interface-brief>
+     <interface-name>GigabitEthernet0/0/0/0</interface-name>
+     <interface>GigabitEthernet0/0/0/0</interface>
+     <type>IFT_GETHERNET</type>
+     <state>im-state-admin-down</state>
+     <actual-state>im-state-admin-down</actual-state>
+     <line-state>im-state-admin-down</line-state>
+     <actual-line-state>im-state-admin-down</actual-line-state>
+     <encapsulation>ether</encapsulation>
+     <encapsulation-type-string>ARPA</encapsulation-type-string>
+     <mtu>1514</mtu>
+     <sub-interface-mtu-overhead>0</sub-interface-mtu-overhead>
+     <l2-transport>false</l2-transport>
+     <bandwidth>1000000</bandwidth>
+    </interface-brief>
+   </interface-briefs>
+  </interfaces>
+ </data>
+
+```
 
 ## Running The Jupyter Notebooks
 
