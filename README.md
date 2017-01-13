@@ -59,7 +59,8 @@ The scripts mostly have a fairly common set of options for help, hostname, port,
 01:46 $ python ncc.py --help
 usage: ncc.py [-h] [--host HOST] [-u USERNAME] [-p PASSWORD] [--port PORT]
               [--timeout TIMEOUT] [-v] [--default-op DEFAULT_OP]
-              [--params PARAMS] [--params-file PARAMS_FILE]
+              [--snippets SNIPPETS] [--params PARAMS]
+              [--params-file PARAMS_FILE]
               [-f FILTER | --named-filter NAMED_FILTER | -x XPATH]
               [--list-templates | --list-filters | -g | --get-oper | --do-edits DO_EDITS [DO_EDITS ...]]
 
@@ -81,6 +82,8 @@ optional arguments:
   -v, --verbose         Exceedingly verbose logging to the console
   --default-op DEFAULT_OP
                         The NETCONF default operation to use (default 'merge')
+  --snippets SNIPPETS   Directory where 'snippets' can be found; default is
+                        location of script
   --params PARAMS       JSON-encoded string of parameters dictionaryfor
                         templates
   --params-file PARAMS_FILE
@@ -92,16 +95,29 @@ optional arguments:
                         Named NETCONF subtree filter
   -x XPATH, --xpath XPATH
                         NETCONF XPath filter
-  --list-templates      List out named templates embedded in script
-  --list-filters        List out named filters embedded in script
+  --list-templates      List out named edit config templates
+  --list-filters        List out named filters
   -g, --get-running     Get the running config
   --get-oper            Get oper data
   --do-edits DO_EDITS [DO_EDITS ...]
                         Execute a sequence of named templates with an optional
                         default operation and a single commit
+
 ```
 
-Named subtree filters are stored in [snippets/filters](snippets/filters) and named templates are stored in [snippets/editconfigs](snippets/editconfigs). The naming convention is fairly obvious; templates files end in ```.tmpl```, but when referred to via CLI arguments the extension is ommitted.
+#### Snippets
+
+Snippets are a way to pre-define edit-config messages or complex filters that you want to use from the command line. Snippets are simple Jinja2 templates, with parameters provided either from the command line or via a file.
+
+Snippets are by default found in a directory name ```snippets```, colocated with the ```ncc.py``` script. Named subtree filters are stored in [snippets/filters](snippets/filters) and named edit-config templates are stored in [snippets/editconfigs](snippets/editconfigs). The naming convention is fairly obvious; templates files end in ```.tmpl```, but when referred to via CLI arguments the extension is ommitted.
+
+The command line option ```--snippets``` may be used to define an alternate location for the ```snippets``` directory. A directory structure as shown below must exist in the location pointed to by the ```--snippets``` parameter:
+
+```
+snippets
+├── editconfigs
+└── filters
+```
 
 The snippets for both edit config messages and named filters now support a JSON format for specifying parameters either on the command line of in a provided file. For example, we may have the filter snippet in file ```intf-brief.tmpl```:
 
@@ -168,6 +184,20 @@ $ python ncc.py --host=192.239.42.222 --get-oper --named-filter intf-brief --par
   </interfaces>
  </data>
 
+```
+
+When edit-config templates or filters are listed (```--list-templates``` or ```--list-filters```), the variables that need to be substituted are also listed. For example:
+
+```
+11:28 $ python ncc.py --list-templates
+Edit-config templates:
+  add_neighbor                           <<-- template name
+    DESCRIPTION                          <<-- substitution
+    NEIGHBOR_ADDR
+    REMOTE_AS
+  add_static_route_default
+  del_neighbor
+    NEIGHBOR_ADDR
 ```
 
 ## Running The Jupyter Notebooks

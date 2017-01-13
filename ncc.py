@@ -4,6 +4,7 @@ import os
 from argparse import ArgumentParser
 from ncclient import manager
 from jinja2 import Environment
+from jinja2 import meta
 from jinja2 import FileSystemLoader
 from jinja2 import Template
 from lxml import etree
@@ -41,10 +42,22 @@ CANDIDATE = False
 # templates and filters unless overriden.
 #
 NCC_DIR, _ = os.path.split(os.path.realpath(__file__))
-named_filters = Environment(loader=FileSystemLoader(
-    '%s/snippets/filters' % NCC_DIR))
-named_templates = Environment(loader=FileSystemLoader(
-    '%s/snippets/editconfigs' % NCC_DIR))
+
+
+def list_templates(header, source_env):
+    """List out all the templates in the provided environment, parse them
+    and extract variables that should be provided.
+    """
+    print(header)
+    env = Environment()
+    for tname in sorted(source_env.list_templates()):
+        tfile = source_env.get_template(tname).filename
+        with open(tfile, 'r') as f:
+            vars = meta.find_undeclared_variables(env.parse(f.read()))
+            f.close()
+            print("  {}".format(tname.replace('.tmpl', '')))
+            for v in sorted(vars):
+                print('    %s' % v)
 
 
 def do_templates(m, t_list, default_op='merge', **kwargs):
@@ -119,6 +132,12 @@ if __name__ == '__main__':
                         help="The NETCONF default operation to use (default 'merge')")
 
     #
+    # Where we want to source snippets from
+    #
+    parser.add_argument('--snippets', type=str, default=NCC_DIR,
+                        help="Directory where 'snippets' can be found; default is location of script")
+    
+    #
     # Various operation parameters. These will be put into a kwargs
     # dictionary for use in template rendering.
     #
@@ -143,9 +162,9 @@ if __name__ == '__main__':
     #
     g = parser.add_mutually_exclusive_group()
     g.add_argument('--list-templates', action='store_true',
-                   help="List out named templates embedded in script")
+                   help="List out named edit-config templates")
     g.add_argument('--list-filters', action='store_true',
-                   help="List out named filters embedded in script")
+                   help="List out named filters")
     g.add_argument('-g', '--get-running', action='store_true',
                    help="Get the running config")
     g.add_argument('--get-oper', action='store_true',
@@ -158,18 +177,23 @@ if __name__ == '__main__':
     #
     args = parser.parse_args()
         
+
+    #
+    # Now we can initialze the snippets
+    #
+    named_filters = Environment(loader=FileSystemLoader(
+        '%s/snippets/filters' % args.snippets))
+    named_templates = Environment(loader=FileSystemLoader(
+        '%s/snippets/editconfigs' % args.snippets))
+
     #
     # Do the named template/filter listing first, then exit.
     #
     if args.list_templates:
-        print("Embedded named templates:")
-        for k in sorted(iter(named_templates.list_templates())):
-            print("  {}".format(k.replace('.tmpl', '')))
+        list_templates("Edit-config templates:", named_templates)
         sys.exit(0)
     elif args.list_filters:
-        print("Embedded named filters:")
-        for k in sorted(iter(named_filters.list_templates())):
-            print("  {}".format(k.replace('.tmpl', '')))
+        list_templates("Named filters:", named_filters)
         sys.exit(0)
 
     #
