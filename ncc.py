@@ -291,3 +291,5 @@ if __name__ == '__main__':
         do_template(m, named_templates.get_template('%s.tmpl' % args.do_edit), **kwargs)
     elif args.do_edits:
         do_templates(m, args.do_edits, named_templates, default_op=args.default_op, **kwargs)
+
+    m.close_session()
