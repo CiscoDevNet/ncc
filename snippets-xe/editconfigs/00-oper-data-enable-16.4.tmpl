@@ -1,0 +1,40 @@
+<config>
+      <netconf-yang xmlns="http://cisco.com/yang/cisco-self-mgmt">
+        <cisco-odm xmlns="http://cisco.com/yang/cisco-odm">
+          <polling-enable>true</polling-enable>
+          <on-demand-default-time>30000</on-demand-default-time>
+          <on-demand-enable>false</on-demand-enable>
+          <actions>
+            <action-name>ACL</action-name>
+            <polling-interval>120000</polling-interval>
+            <mode>poll</mode>
+          </actions>
+          <actions>
+            <action-name>Archive</action-name>
+            <polling-interval>120000</polling-interval>
+            <mode>poll</mode>
+          </actions>
+          <actions>
+            <action-name>Environment</action-name>
+            <polling-interval>120000</polling-interval>
+            <mode>poll</mode>
+          </actions>
+          <actions>
+            <action-name>FlowMonitor</action-name>
+            <polling-interval>120000</polling-interval>
+            <mode>poll</mode>
+          </actions>
+          <actions>
+            <action-name>Interfaces</action-name>
+            <polling-interval>120000</polling-interval>
+            <mode>poll</mode>
+          </actions>
+          <actions>
+            <action-name>PlatformSoftware</action-name>
+            <polling-interval>120000</polling-interval>
+            <mode>poll</mode>
+          </actions>
+        </cisco-odm>
+      </netconf-yang>
+    </config>
+

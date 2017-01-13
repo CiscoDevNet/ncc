@@ -61,7 +61,6 @@ def get_running_config(m, filter=None, xpath=None):
     filter are passed in for some reason, the subtree filter "wins".
     """
     import time
-    print "filter", filter, "xpath", xpath
     if filter and len(filter) > 0:
         c = m.get_config(source='running', filter=('subtree', filter))
     elif xpath and len(xpath)>0:
@@ -204,7 +203,7 @@ if __name__ == '__main__':
             f.close()
     else:
         kwargs = {}
-    print "KW", kwargs
+
     #
     # This populates the filter if it's a canned filter.
     #
