@@ -136,24 +136,10 @@ if __name__ == '__main__':
     # Various operation parameters. Put int a kwargs structure for use
     # in template rendering.
     #
-    parser.add_argument('-i', '--intf-name', type=str,
-                        help="Specify an interface for general use in templates (no format validation)")
-    parser.add_argument('-s', '--subintf-index', type=int, 
-                        help="Specify sub-interface index for general use in openconfig templates (no format validation)")
-    parser.add_argument('-n', '--neighbor-addr', type=str, 
-                        help="Specify a neighbor address (no format validation)")
-    parser.add_argument('-r', '--remote-as', type=str, 
-                        help="Specify the neighbor's remote AS (no format validation)")
-    parser.add_argument('--description', type=str, 
-                        help="BGP neighbor description string (quote it!)")
-    parser.add_argument('--vlan', type=str,
-                        help="VLAN Number")
-    parser.add_argument('--rc-bridge-ip', type=str,
-                        help="Bridge IP address for enabling RESTCONF static route")
-    parser.add_argument('--rc-http-port', type=int, default=115,
-                        help="HTTP port for RESTCONF (default 115)")
-    parser.add_argument('--rc-https-port', type=int, default=116,
-                        help="HTTPS port for RESTCONF (default 116)")
+    parser.add_argument('--params', type=str,
+                        help="JSON-encoded string of parameters dictionaryfor templates")
+    parser.add_argument('--params-file', type=str,
+                        help="JSON-encoded file of parameters dictionary for templates")
 
     #
     # Only one type of filter allowed.
@@ -229,25 +215,16 @@ if __name__ == '__main__':
     #
     # set up various keyword arguments that have specific arguments
     #
-    kwargs = {}
-    if args.intf_name:
-        kwargs['INTF_NAME'] = args.intf_name
-    if args.subintf_index:
-        kwargs['SUBINTF_INDEX'] = args.subintf_index
-    if args.neighbor_addr:
-        kwargs['NEIGHBOR_ADDR'] = args.neighbor_addr
-    if args.remote_as:
-        kwargs['REMOTE_AS'] = args.remote_as
-    if args.description:
-        kwargs['DESCRIPTION'] = args.description
-    if args.vlan:
-        kwargs['VLAN'] = args.vlan
-    if args.rc_bridge_ip:
-        kwargs['BRIDGE_IP'] = args.rc_bridge_ip
-    if args.rc_http_port:
-        kwargs['RC_HTTP_PORT'] = args.rc_http_port
-    if args.rc_https_port:
-        kwargs['RC_HTTPS_PORT'] = args.rc_https_port
+
+    kwargs = None
+    if args.params:
+        kwargs = json.loads(args.params)
+    elif args.params_file:
+        with open(args.params_file) as f:
+            kwargs = json.loads(f.read())
+            f.close()
+    else:
+        kwargs = {}
 
     #
     # This populates the filter if it's a canned filter.
@@ -292,4 +269,5 @@ if __name__ == '__main__':
     elif args.do_edits:
         do_templates(m, args.do_edits, named_templates, default_op=args.default_op, **kwargs)
 
+    # now clean up
     m.close_session()
