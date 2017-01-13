@@ -1,0 +1,9 @@
+<config>
+      <netconf-yang xmlns="http://cisco.com/yang/cisco-self-mgmt">
+        <cisco-ia xmlns="http://cisco.com/yang/cisco-ia">
+          <snmp-trap-control nc:operation="delete">
+          </snmp-trap-control>
+        </cisco-ia>
+      </netconf-yang>
+
+</config>
