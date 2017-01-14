@@ -72,7 +72,7 @@ def do_templates(m, t_list, default_op='merge', **kwargs):
         try:
             data = tmpl.render(kwargs)
         except UndefinedError as e:
-            print "Undefined variable %s" % e.message
+            print "Undefined variable %s.  Use --params to specify json dict" % e.message
             # assuming we should fail if a single template fails?
             exit(1)
 
@@ -244,7 +244,7 @@ if __name__ == '__main__':
             args.filter = named_filters.get_template(
                 '%s.tmpl' % args.named_filter).render(**kwargs)
         except UndefinedError as e:
-            print "Undefined variable %s" % e.message
+            print "Undefined variable %s.  Use --params to specify json dict" % e.message
             exit(1)
 
     #
