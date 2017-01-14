@@ -67,10 +67,15 @@ def do_templates(m, t_list, default_op='merge', **kwargs):
     """Execute a list of templates, using the kwargs passed in to
     complete the rendering.
     """
-    for tmpl in t_list:
 
-        data = tmpl.render(kwargs)
-        print "data", data
+    for tmpl in t_list:
+        try:
+            data = tmpl.render(kwargs)
+        except UndefinedError as e:
+            print "Undefined variable %s" % e.message
+            # assuming we should fail if a single template fails?
+            exit(1)
+
         if CANDIDATE:
             m.edit_config(data,
                           format='xml',
@@ -194,7 +199,8 @@ if __name__ == '__main__':
         '%s/%s/filters' % (NCC_DIR,args.snippets)),
         undefined=StrictUndefined)
     named_templates = Environment(loader=FileSystemLoader(
-        '%s/%s/editconfigs' % (NCC_DIR, args.snippets)))
+        '%s/%s/editconfigs' % (NCC_DIR, args.snippets)),
+        undefined=StrictUndefined)
 
     #
     # Do the named template/filter listing first, then exit.
