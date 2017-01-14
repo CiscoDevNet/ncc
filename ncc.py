@@ -4,8 +4,10 @@ import os
 from argparse import ArgumentParser
 from ncclient import manager
 from jinja2 import Environment
+from jinja2.exceptions import UndefinedError
 from jinja2 import meta
 from jinja2 import FileSystemLoader
+from jinja2 import StrictUndefined
 from jinja2 import Template
 from lxml import etree
 import logging
@@ -142,7 +144,7 @@ if __name__ == '__main__':
     #
     # Where we want to source snippets from
     #
-    parser.add_argument('--snippets', type=str, default=NCC_DIR,
+    parser.add_argument('--snippets', type=str, default="snippets-xe",
                         help="JSON-encoded string of parameters dictionaryfor templates")
     #
     # Various operation parameters. These will be put into a kwargs
@@ -188,9 +190,10 @@ if __name__ == '__main__':
 
     #
     named_filters = Environment(loader=FileSystemLoader(
-        '%s/snippets/filters' % args.snippets))
+        '%s/%s/filters' % (NCC_DIR,args.snippets)),
+        undefined=StrictUndefined)
     named_templates = Environment(loader=FileSystemLoader(
-        '%s/snippets/editconfigs' % args.snippets))
+        '%s/%s/editconfigs' % (NCC_DIR, args.snippets)))
 
     #
     # Do the named template/filter listing first, then exit.
@@ -230,8 +233,12 @@ if __name__ == '__main__':
     # This populates the filter if it's a canned filter.
     #
     if args.named_filter:
-        args.filter = named_filters.get_template(
-            '%s.tmpl' % args.named_filter).render(**kwargs)
+        try:
+            args.filter = named_filters.get_template(
+                '%s.tmpl' % args.named_filter).render(**kwargs)
+        except UndefinedError as e:
+            print "Undefined variable %s" % e.message
+            exit(1)
 
     #
     # Could use this extra param instead of the last four arguments
@@ -262,15 +269,18 @@ if __name__ == '__main__':
 
 
     if args.get_running:
-        if args.xpath:
-            get_running_config(m, xpath=args.xpath)
-        else:
-            get_running_config(m, filter=args.filter)
+        # if args.xpath:
+        #     get_running_config(m, xpath=args.xpath)
+        # else:
+        #     get_running_config(m, filter=args.filter)
+        get_running_config(m, xpath=args.xpath, filter=args.filter)
+
     elif args.get_oper:
-        if args.xpath:
-            get(m, xpath=args.xpath)
-        else:
-            get(m, filter=args.filter)
+        #if args.xpath:
+        #    get(m, xpath=args.xpath)
+        #else:
+        #    get(m, filter=args.filter)
+        get(m, filter=args.filter, xpath=args.xpath)
     elif args.do_edits:
         do_templates( m,
                       [named_templates.get_template('%s.tmpl' % t) for t in args.do_edits],
