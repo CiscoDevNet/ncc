@@ -145,7 +145,8 @@ if __name__ == '__main__':
     # Where we want to source snippets from
     #
     parser.add_argument('--snippets', type=str, default="snippets-xe",
-                        help="JSON-encoded string of parameters dictionaryfor templates")
+                        help="Directory where 'snippets' can be found; default is location of script")
+
     #
     # Various operation parameters. These will be put into a kwargs
     # dictionary for use in template rendering.
