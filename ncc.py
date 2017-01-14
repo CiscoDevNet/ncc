@@ -10,10 +10,7 @@ from jinja2 import Template
 from lxml import etree
 import logging
 import json
-<<<<<<< HEAD
-=======
 
->>>>>>> upstream/master
 
 #
 # Add things people want logged here. Just various netconf things for
@@ -45,8 +42,7 @@ CANDIDATE = False
 # templates and filters unless overriden.
 #
 NCC_DIR, _ = os.path.split(os.path.realpath(__file__))
-<<<<<<< HEAD
-=======
+
 
 
 def list_templates(header, source_env):
@@ -64,7 +60,6 @@ def list_templates(header, source_env):
             for v in sorted(vars):
                 print('    %s' % v)
 
->>>>>>> upstream/master
 
 def do_templates(m, t_list, default_op='merge', **kwargs):
     """Execute a list of templates, using the kwargs passed in to
@@ -137,33 +132,26 @@ if __name__ == '__main__':
                         help="Exceedingly verbose logging to the console")
     parser.add_argument('--default-op', type=str, default='merge',
                         help="The NETCONF default operation to use (default 'merge')")
-<<<<<<< HEAD
+
     parser.add_argument('-w', '--where', action='store_true',
                         help="Print where script is and exit")
     parser.add_argument('--snippetdir', type=str, default='snippets-xe',
                         help="parent snippet directory")
-=======
->>>>>>> upstream/master
+
 
     #
     # Where we want to source snippets from
     #
-<<<<<<< HEAD
-    parser.add_argument('--params', type=str,
-=======
     parser.add_argument('--snippets', type=str, default=NCC_DIR,
-                        help="Directory where 'snippets' can be found; default is location of script")
-    
+                        help="JSON-encoded string of parameters dictionaryfor templates")
     #
     # Various operation parameters. These will be put into a kwargs
     # dictionary for use in template rendering.
     #
-    parser.add_argument('--params', type=str, 
->>>>>>> upstream/master
+    parser.add_argument('--params', type=str,
                         help="JSON-encoded string of parameters dictionaryfor templates")
     parser.add_argument('--params-file', type=str,
                         help="JSON-encoded file of parameters dictionary for templates")
-
     #
     # Only one type of filter allowed.
     #
@@ -197,18 +185,7 @@ if __name__ == '__main__':
         
 
     #
-<<<<<<< HEAD
-    # setup the templates/filter directory
-    #
-    named_filters = Environment(loader=FileSystemLoader('%s/%s/filters' % (NCC_DIR, args.snippetdir)))
-    named_templates = Environment(loader=FileSystemLoader('%s/%s/editconfigs' % (NCC_DIR, args.snippetdir)))
 
-
-    #
-    # temp insertion
-=======
-    # Now we can initialze the snippets
->>>>>>> upstream/master
     #
     named_filters = Environment(loader=FileSystemLoader(
         '%s/snippets/filters' % args.snippets))
@@ -238,10 +215,7 @@ if __name__ == '__main__':
     #
     # set up various keyword arguments that have specific arguments
     #
-<<<<<<< HEAD
 
-=======
->>>>>>> upstream/master
     kwargs = None
     if args.params:
         kwargs = json.loads(args.params)
@@ -286,12 +260,7 @@ if __name__ == '__main__':
     if NC_CANDIDATE in m.server_capabilities:
         CANDIDATE = True
 
-<<<<<<< HEAD
-=======
-    #
-    # Now we actually do something!!
-    #
->>>>>>> upstream/master
+
     if args.get_running:
         if args.xpath:
             get_running_config(m, xpath=args.xpath)
@@ -307,13 +276,9 @@ if __name__ == '__main__':
                       [named_templates.get_template('%s.tmpl' % t) for t in args.do_edits],
                       default_op=args.default_op,
                       **kwargs)
-<<<<<<< HEAD
-    # now clean up
-    m.close_session()
-=======
+
 
     #
     # Orderly teardown of the netconf session.
     #
     m.close_session()
->>>>>>> upstream/master
