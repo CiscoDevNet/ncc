@@ -4,11 +4,16 @@ import os
 from argparse import ArgumentParser
 from ncclient import manager
 from jinja2 import Environment
+from jinja2 import meta
 from jinja2 import FileSystemLoader
 from jinja2 import Template
 from lxml import etree
 import logging
 import json
+<<<<<<< HEAD
+=======
+
+>>>>>>> upstream/master
 
 #
 # Add things people want logged here. Just various netconf things for
@@ -19,6 +24,13 @@ LOGGING_TO_ENABLE = [
     'ncclient.transport.session',
     'ncclient.operations.rpc'
 ]
+
+
+#
+# Capability constants
+#
+NC_WRITABLE_RUNNING = 'urn:ietf:params:netconf:capability:writable-running:1.0'
+NC_CANDIDATE = 'urn:ietf:params:netconf:capability:candidate:1.0'
 
 
 #
@@ -33,6 +45,26 @@ CANDIDATE = False
 # templates and filters unless overriden.
 #
 NCC_DIR, _ = os.path.split(os.path.realpath(__file__))
+<<<<<<< HEAD
+=======
+
+
+def list_templates(header, source_env):
+    """List out all the templates in the provided environment, parse them
+    and extract variables that should be provided.
+    """
+    print(header)
+    env = Environment()
+    for tname in sorted(source_env.list_templates()):
+        tfile = source_env.get_template(tname).filename
+        with open(tfile, 'r') as f:
+            vars = meta.find_undeclared_variables(env.parse(f.read()))
+            f.close()
+            print("  {}".format(tname.replace('.tmpl', '')))
+            for v in sorted(vars):
+                print('    %s' % v)
+
+>>>>>>> upstream/master
 
 def do_templates(m, t_list, default_op='merge', **kwargs):
     """Execute a list of templates, using the kwargs passed in to
@@ -105,16 +137,29 @@ if __name__ == '__main__':
                         help="Exceedingly verbose logging to the console")
     parser.add_argument('--default-op', type=str, default='merge',
                         help="The NETCONF default operation to use (default 'merge')")
+<<<<<<< HEAD
     parser.add_argument('-w', '--where', action='store_true',
                         help="Print where script is and exit")
     parser.add_argument('--snippetdir', type=str, default='snippets-xe',
                         help="parent snippet directory")
+=======
+>>>>>>> upstream/master
 
     #
-    # Various operation parameters. Put int a kwargs structure for use
-    # in template rendering.
+    # Where we want to source snippets from
     #
+<<<<<<< HEAD
     parser.add_argument('--params', type=str,
+=======
+    parser.add_argument('--snippets', type=str, default=NCC_DIR,
+                        help="Directory where 'snippets' can be found; default is location of script")
+    
+    #
+    # Various operation parameters. These will be put into a kwargs
+    # dictionary for use in template rendering.
+    #
+    parser.add_argument('--params', type=str, 
+>>>>>>> upstream/master
                         help="JSON-encoded string of parameters dictionaryfor templates")
     parser.add_argument('--params-file', type=str,
                         help="JSON-encoded file of parameters dictionary for templates")
@@ -131,19 +176,17 @@ if __name__ == '__main__':
                    help="NETCONF XPath filter")
 
     #
-    # Basic, mutually exclusive, operations.
+    # Mutually exclusive operations.
     #
     g = parser.add_mutually_exclusive_group()
     g.add_argument('--list-templates', action='store_true',
-                   help="List out named templates embedded in script")
+                   help="List out named edit-config templates")
     g.add_argument('--list-filters', action='store_true',
-                   help="List out named filters embedded in script")
+                   help="List out named filters")
     g.add_argument('-g', '--get-running', action='store_true',
                    help="Get the running config")
     g.add_argument('--get-oper', action='store_true',
                    help="Get oper data")
-    g.add_argument('--do-edit', type=str,
-                   help="Execute a named template")
     g.add_argument('--do-edits', type=str, nargs='+',
                    help="Execute a sequence of named templates with an optional default operation and a single commit")
 
@@ -151,8 +194,10 @@ if __name__ == '__main__':
     # Finally, parse the arguments!
     #
     args = parser.parse_args()
+        
 
     #
+<<<<<<< HEAD
     # setup the templates/filter directory
     #
     named_filters = Environment(loader=FileSystemLoader('%s/%s/filters' % (NCC_DIR, args.snippetdir)))
@@ -161,25 +206,25 @@ if __name__ == '__main__':
 
     #
     # temp insertion
+=======
+    # Now we can initialze the snippets
+>>>>>>> upstream/master
     #
-    if args.where:
-        print(dir(named_filters))
-        print(named_filters.get_template('intf-brief-all.tmpl').render())
-        sys.exit(0)
-        
+    named_filters = Environment(loader=FileSystemLoader(
+        '%s/snippets/filters' % args.snippets))
+    named_templates = Environment(loader=FileSystemLoader(
+        '%s/snippets/editconfigs' % args.snippets))
+
     #
     # Do the named template/filter listing first, then exit.
     #
     if args.list_templates:
-        print("Embedded named templates:")
-        for k in sorted(iter(named_templates.list_templates())):
-            print("  {}".format(k.replace('.tmpl', '')))
+        list_templates("Edit-config templates:", named_templates)
         sys.exit(0)
     elif args.list_filters:
-        print("Embedded named filters:")
-        for k in sorted(iter(named_filters.list_templates())):
-            print("  {}".format(k.replace('.tmpl', '')))
+        list_templates("Named filters:", named_filters)
         sys.exit(0)
+
     #
     # If the user specified verbose logging, set it up.
     #
@@ -193,7 +238,10 @@ if __name__ == '__main__':
     #
     # set up various keyword arguments that have specific arguments
     #
+<<<<<<< HEAD
 
+=======
+>>>>>>> upstream/master
     kwargs = None
     if args.params:
         kwargs = json.loads(args.params)
@@ -208,7 +256,8 @@ if __name__ == '__main__':
     # This populates the filter if it's a canned filter.
     #
     if args.named_filter:
-        args.filter = named_filters.get_template('%s.tmpl' % args.named_filter).render(**kwargs)
+        args.filter = named_filters.get_template(
+            '%s.tmpl' % args.named_filter).render(**kwargs)
 
     #
     # Could use this extra param instead of the last four arguments
@@ -227,11 +276,22 @@ if __name__ == '__main__':
                          look_for_keys=False,
                          hostkey_verify=False,
                          unknown_host_cb=unknown_host_cb)
-    if 'urn:ietf:params:netconf:capability:writable-running:1.0' in m.server_capabilities:
+
+    #
+    # Extract the key capabilities that determine how we interact with
+    # the device. This script will prefer using candidate config.
+    #
+    if NC_WRITABLE_RUNNING in m.server_capabilities:
         RUNNING = True
-    if 'urn:ietf:params:netconf:capability:candidate:1.0' in m.server_capabilities:
+    if NC_CANDIDATE in m.server_capabilities:
         CANDIDATE = True
 
+<<<<<<< HEAD
+=======
+    #
+    # Now we actually do something!!
+    #
+>>>>>>> upstream/master
     if args.get_running:
         if args.xpath:
             get_running_config(m, xpath=args.xpath)
@@ -247,5 +307,13 @@ if __name__ == '__main__':
                       [named_templates.get_template('%s.tmpl' % t) for t in args.do_edits],
                       default_op=args.default_op,
                       **kwargs)
+<<<<<<< HEAD
     # now clean up
     m.close_session()
+=======
+
+    #
+    # Orderly teardown of the netconf session.
+    #
+    m.close_session()
+>>>>>>> upstream/master
