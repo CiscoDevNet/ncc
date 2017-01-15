@@ -142,9 +142,6 @@ if __name__ == '__main__':
 
     parser.add_argument('-w', '--where', action='store_true',
                         help="Print where script is and exit")
-    parser.add_argument('--snippetdir', type=str, default='snippets-xe',
-                        help="parent snippet directory")
-
 
     #
     # Where we want to source snippets from
@@ -196,9 +193,11 @@ if __name__ == '__main__':
 
     #
     named_filters = Environment(loader=FileSystemLoader(
-        '%s/filters' % args.snippets))
+        '%s/filters' % args.snippets),
+        undefined=StrictUndefined)
     named_templates = Environment(loader=FileSystemLoader(
-        '%s/editconfigs' % args.snippets))
+        '%s/editconfigs' % args.snippets),
+        undefined = StrictUndefined)
 
     #
     # Do the named template/filter listing first, then exit.
