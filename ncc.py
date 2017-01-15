@@ -149,7 +149,7 @@ if __name__ == '__main__':
     #
     # Where we want to source snippets from
     #
-    parser.add_argument('--snippets', type=str, default="snippets-xe",
+    parser.add_argument('--snippets', type=str, default="%s/snippets" % NCC_DIR,
                         help="Directory where 'snippets' can be found; default is location of script")
 
     #
@@ -196,11 +196,9 @@ if __name__ == '__main__':
 
     #
     named_filters = Environment(loader=FileSystemLoader(
-        '%s/%s/filters' % (NCC_DIR,args.snippets)),
-        undefined=StrictUndefined)
+        '%s/filters' % args.snippets))
     named_templates = Environment(loader=FileSystemLoader(
-        '%s/%s/editconfigs' % (NCC_DIR, args.snippets)),
-        undefined=StrictUndefined)
+        '%s/editconfigs' % args.snippets))
 
     #
     # Do the named template/filter listing first, then exit.
