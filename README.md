@@ -205,6 +205,8 @@ Additionally, this example shows how to use case-insentitive regex matches in Py
 
 Snippets are a way to pre-define edit-config messages or complex filters that you want to use from the command line. Snippets are simple Jinja2 templates, with parameters provided either from the command line or via a file.
 
+> **NOTE** Snippets directory location and customization text here currently out of date.
+
 Snippets are by default found in a directory name ```snippets```, colocated with the ```ncc.py``` script. Named subtree filters are stored in [snippets/filters](snippets/filters) and named edit-config templates are stored in [snippets/editconfigs](snippets/editconfigs). The naming convention is fairly obvious; templates files end in ```.tmpl```, but when referred to via CLI arguments the extension is ommitted.
 
 The command line option ```--snippets``` may be used to define an alternate location for the ```snippets``` directory. A directory structure as shown below must exist in the location pointed to by the ```--snippets``` parameter:
