@@ -94,7 +94,6 @@ def get_running_config(m, filter=None, xpath=None):
     """Get running config with a passed in filter. If both types of
     filter are passed in for some reason, the subtree filter "wins".
     """
-    import time
     if filter and len(filter) > 0:
         c = m.get_config(source='running', filter=('subtree', filter))
     elif xpath and len(xpath)>0:
@@ -171,7 +170,7 @@ if __name__ == '__main__':
     #
     # Mutually exclusive operations.
     #
-    g = parser.add_mutually_exclusive_group()
+    g = parser.add_mutually_exclusive_group(required=True)
     g.add_argument('--list-templates', action='store_true',
                    help="List out named edit-config templates")
     g.add_argument('--list-filters', action='store_true',
@@ -181,7 +180,7 @@ if __name__ == '__main__':
     g.add_argument('--get-oper', action='store_true',
                    help="Get oper data")
     g.add_argument('--do-edits', type=str, nargs='+',
-                   help="Execute a sequence of named templates with an optional default operation and a single commit")
+                   help="Execute a sequence of named templates with an optional default operation and a single commit when candidate config supported. If only writable-running support, ALL operations will be attempted.")
 
     #
     # Finally, parse the arguments!
