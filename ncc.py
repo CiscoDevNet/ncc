@@ -297,5 +297,8 @@ if __name__ == '__main__':
 
     #
     # Orderly teardown of the netconf session.
-    #
-    m.close_session()
+    # Ignore Value error sometimes returned in cleanup
+    try:
+        m.close_session()
+    except ValueError:
+        pass
