@@ -4,7 +4,7 @@
 
 This repository presents:
 
-* Python scripts using the ncclient library (0.5.2) to talk to NETCONF-enabled devices.
+* Python scripts using the ncclient library (`0.5.2` or greater as of writing) to talk to NETCONF-enabled devices.
 * Jupyter (IPython) Notebooks in the directory [```notebooks```](notebooks).
 
 
@@ -53,16 +53,23 @@ A couple of the scripts used to have other names, so, for backwards compatibilit
 
 ### Running The Scripts
 
-The scripts mostly have a fairly common set of options for help, hostname, port, username and password. For example, the [ncc.py](ncc.py) script can be invoked with ```--help```:
+The scripts mostly have a fairly common set of options for help, hostname, port, username and password. Just try running with the `--help` option.
+
+### ncc.py
+
+The script `ncc.py` presents a number of useful operations. If we look at its help:
+
+> Note that the help text displayed here may be out of step with the actual code. Please run latest version of the script to ensure satisfaction!
+
 
 ```
-01:46 $ python ncc.py --help
+$ python ncc.py --help
 usage: ncc.py [-h] [--host HOST] [-u USERNAME] [-p PASSWORD] [--port PORT]
-              [--timeout TIMEOUT] [-v] [--default-op DEFAULT_OP]
+              [--timeout TIMEOUT] [-v] [--default-op DEFAULT_OP] [-w]
               [--snippets SNIPPETS] [--params PARAMS]
               [--params-file PARAMS_FILE]
               [-f FILTER | --named-filter NAMED_FILTER | -x XPATH]
-              [--list-templates | --list-filters | -g | --get-oper | --do-edits DO_EDITS [DO_EDITS ...]]
+              (-c | --is-supported IS_SUPPORTED | --list-templates | --list-filters | -g | --get-oper | --do-edits DO_EDITS [DO_EDITS ...])
 
 Select your NETCONF operation and parameters:
 
@@ -82,6 +89,7 @@ optional arguments:
   -v, --verbose         Exceedingly verbose logging to the console
   --default-op DEFAULT_OP
                         The NETCONF default operation to use (default 'merge')
+  -w, --where           Print where script is and exit
   --snippets SNIPPETS   Directory where 'snippets' can be found; default is
                         location of script
   --params PARAMS       JSON-encoded string of parameters dictionaryfor
@@ -95,19 +103,109 @@ optional arguments:
                         Named NETCONF subtree filter
   -x XPATH, --xpath XPATH
                         NETCONF XPath filter
-  --list-templates      List out named edit config templates
+  -c, --capabilities    Display capabilities of the device.
+  --is-supported IS_SUPPORTED
+                        Query the server capabilities to determine whether the
+                        device claims to support YANG modules matching the
+                        provided regular expression. The regex provided is not
+                        automatically anchored to start or end. Note that the
+                        regex supplied must be in a format valid for Python
+                        and that it may be necessary to quote the argument.
+  --list-templates      List out named edit-config templates
   --list-filters        List out named filters
   -g, --get-running     Get the running config
   --get-oper            Get oper data
   --do-edits DO_EDITS [DO_EDITS ...]
                         Execute a sequence of named templates with an optional
-                        default operation and a single commit
+                        default operation and a single commit when candidate
+                        config supported. If only writable-running support,
+                        ALL operations will be attempted.
+```
+
+In subsequent sections some of its capabilities will be expanded on.
+
+#### Device Capabilities
+
+It is now possible to query the device either to return a categorized list of capabilities and models or to return the models matching a provided Python regular expression.
+
+To get device capabilities:
 
 ```
+python ncc.py --host=192.239.42.222 --capabilities
+IETF NETCONF Capabilities:
+	urn:ietf:params:netconf:capability:rollback-on-error:1.0
+	urn:ietf:params:netconf:base:1.1
+	urn:ietf:params:netconf:capability:candidate:1.0
+	urn:ietf:params:netconf:capability:validate:1.1
+	urn:ietf:params:netconf:capability:confirmed-commit:1.1
+IETF Models:
+	ietf-netconf (urn:ietf:params:xml:ns:netconf:base:1.0)
+	ietf-syslog-types (urn:ietf:params:xml:ns:yang:ietf-syslog-types)
+	ietf-yang-smiv2 (urn:ietf:params:xml:ns:yang:ietf-yang-smiv2)
+	ietf-netconf-with-defaults (urn:ietf:params:xml:ns:yang:ietf-netconf-with-defaults)
+	ietf-netconf-monitoring (urn:ietf:params:xml:ns:yang:ietf-netconf-monitoring)
+	ietf-yang-types (urn:ietf:params:xml:ns:yang:ietf-yang-types)
+	iana-if-type (urn:ietf:params:xml:ns:yang:iana-if-type)
+	ietf-inet-types (urn:ietf:params:xml:ns:yang:ietf-inet-types)
+OpenConfig Models:
+	openconfig-bgp-multiprotocol (http://openconfig.net/yang/bgp-multiprotocol)
+	openconfig-bgp-policy (http://openconfig.net/yang/bgp-policy)
+	openconfig-bgp-types (http://openconfig.net/yang/bgp-types)
+	openconfig-mpls-rsvp (http://openconfig.net/yang/rsvp)
+	openconfig-routing-policy (http://openconfig.net/yang/routing-policy)
+	openconfig-bgp-operational (http://openconfig.net/yang/bgp-operational)
+	openconfig-extensions (http://openconfig.net/yang/openconfig-ext)
+	openconfig-telemetry (http://openconfig.net/yang/telemetry)
+	openconfig-mpls-sr (http://openconfig.net/yang/sr)
+	openconfig-if-ethernet (http://openconfig.net/yang/interfaces/ethernet)
+	openconfig-vlan (http://openconfig.net/yang/vlan)
+	openconfig-policy-types (http://openconfig.net/yang/policy-types)
+	openconfig-types (http://openconfig.net/yang/openconfig-types)
+	openconfig-mpls-types (http://openconfig.net/yang/mpls-types)
+	openconfig-if-ip (http://openconfig.net/yang/interfaces/ip)
+	openconfig-if-aggregate (http://openconfig.net/yang/interface/aggregate)
+	openconfig-bgp (http://openconfig.net/yang/bgp)
+	openconfig-mpls (http://openconfig.net/yang/mpls)
+	openconfig-interfaces (http://openconfig.net/yang/interfaces)
+	openconfig-mpls-ldp (http://openconfig.net/yang/ldp)
+...etc...
+```
+
+To query for supported models (running against an IOS-XR image):
+
+```
+15:10 $ python ncc.py --host=192.239.42.222 --is-supported '(?i)snmp'
+SNMP-NOTIFICATION-MIB
+SNMP-MPD-MIB
+Cisco-IOS-XR-snmp-entstatemib-cfg
+Cisco-IOS-XR-snmp-agent-oper
+SNMP-FRAMEWORK-MIB
+Cisco-IOS-XR-snmp-agent-cfg
+SNMP-COMMUNITY-MIB
+Cisco-IOS-XR-snmp-entitymib-oper
+Cisco-IOS-XR-snmp-test-trap-act
+Cisco-IOS-XR-snmp-syslogmib-cfg
+Cisco-IOS-XR-snmp-ifmib-oper
+SNMPv2-TC
+SNMP-USER-BASED-SM-MIB
+SNMPv2-MIB
+Cisco-IOS-XR-snmp-ifmib-cfg
+Cisco-IOS-XR-snmp-mib-rfmib-cfg
+Cisco-IOS-XR-snmp-ciscosensormib-cfg
+SNMP-VIEW-BASED-ACM-MIB
+Cisco-IOS-XR-snmp-entitymib-cfg
+SNMP-TARGET-MIB
+Cisco-IOS-XR-snmp-sensormib-oper
+Cisco-IOS-XR-snmp-frucontrolmib-cfg
+```
+
+Additionally, this example shows how to use case-insentitive regex matches in Python.
 
 #### Snippets
 
 Snippets are a way to pre-define edit-config messages or complex filters that you want to use from the command line. Snippets are simple Jinja2 templates, with parameters provided either from the command line or via a file.
+
+> **NOTE** Snippets directory location and customization text here currently out of date.
 
 Snippets are by default found in a directory name ```snippets```, colocated with the ```ncc.py``` script. Named subtree filters are stored in [snippets/filters](snippets/filters) and named edit-config templates are stored in [snippets/editconfigs](snippets/editconfigs). The naming convention is fairly obvious; templates files end in ```.tmpl```, but when referred to via CLI arguments the extension is ommitted.
 
