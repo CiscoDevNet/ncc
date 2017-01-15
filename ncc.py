@@ -12,7 +12,7 @@ from jinja2 import Template
 from lxml import etree
 import logging
 import json
-
+import re
 
 #
 # Add things people want logged here. Just various netconf things for
@@ -45,7 +45,87 @@ CANDIDATE = False
 #
 NCC_DIR, _ = os.path.split(os.path.realpath(__file__))
 
+def display_capabilities(m):
+    """Display the capabilities in a useful, categorized way.
+    """
+    ietf_netconf_caps = []
+    ietf_models = []
+    openconfig_models = []
+    cisco_models = []
+    cisco_calvados_models = []
+    mib_models = []
+    other_models = []
 
+    # local function to pull out NS & module
+    def append_ns_and_module(c, module_list):
+        re_model = '^([^\?]+)\?module=([^&]+)&?'
+        m = re.search(re_model, c)
+        if m:
+            module_list.append('%s (%s)' % (m.group(2), m.group(1)))
+        else:
+            print('UNMATCHED model: %s' % c)
+
+    # pre-process capabilities, split into various categories
+    ns_to_list = [
+        ('urn:ietf:params:xml:ns', ietf_models),
+        ('http://openconfig.net/yang', openconfig_models),
+        ('http://cisco.com/ns/yang', cisco_models,),
+        ('http://cisco.com/calvados', cisco_calvados_models),
+        ('http://cisco.com/panini/calvados', cisco_calvados_models),
+        ('http://tail-f.com/ns/mibs', mib_models),
+        ('http://tail-f.com/ns', cisco_calvados_models),
+        ('http://tail-f.com/test', cisco_calvados_models),
+        ('http://tail-f.com/yang', cisco_calvados_models),
+        ('http://www.cisco.com/calvados', cisco_calvados_models),
+        ('http://www.cisco.com/ns/calvados', cisco_calvados_models),
+        ('http://www.cisco.com/panini/calvados', cisco_calvados_models),
+        ('http://', other_models),
+    ]
+    for c in m.server_capabilities:
+        matched = False
+        if c.startswith('urn:ietf:params:netconf'):
+            ietf_netconf_caps.append(c)
+            matched = True
+        else:
+            for ns, ns_list in ns_to_list:
+                if ns in c:
+                    append_ns_and_module(c, ns_list)
+                    matched = True
+                    break
+        if matched==False:
+            print(c)
+
+    # now print them
+    list_to_heading = [
+        (ietf_netconf_caps, 'IETF NETCONF Capabilities:'),
+        (ietf_models, 'IETF Models:'),
+        (openconfig_models, 'OpenConfig Models:'),
+        (cisco_models, 'Cisco Models:'),
+        (cisco_calvados_models, 'Cisco Calvados Models:'),
+        (mib_models, 'MIB Models:'),
+        (other_models, 'Other Models:'),
+    ]
+    for (l, h) in list_to_heading:
+        if len(l) > 0:
+            print(h)
+            for s in l:
+                print('\t%s' % s)
+
+
+def query_model_support(m, re_module):
+    """Search the capabilities for one or more models that match the provided
+    regex.
+    """
+    matches = []
+    re_model = '^([^\?]+)\?module=([^&]+)&?'
+    for c in m.server_capabilities:
+        m = re.search(re_model, c)
+        if m:
+            model = m.group(2)
+            match = re.search(re_module, model)
+            if match:
+                matches.append(model)
+    return matches
 
 def list_templates(header, source_env):
     """List out all the templates in the provided environment, parse them
@@ -172,6 +252,10 @@ if __name__ == '__main__':
     # Mutually exclusive operations.
     #
     g = parser.add_mutually_exclusive_group()
+    g.add_argument('-c', '--capabilities', action='store_true',
+                   help="Display capabilities of the device.")
+    g.add_argument('--is-supported', type=str,
+                   help="Query the server capabilities to determine whether the device claims to support YANG modules matching the provided regular expression. The regex provided is not automatically anchored to start or end. Note that the regex supplied must be in a format valid for Python and that it may be necessary to quote the argument.")
     g.add_argument('--list-templates', action='store_true',
                    help="List out named edit-config templates")
     g.add_argument('--list-filters', action='store_true',
@@ -288,7 +372,12 @@ if __name__ == '__main__':
                       [named_templates.get_template('%s.tmpl' % t) for t in args.do_edits],
                       default_op=args.default_op,
                       **kwargs)
-
+    elif args.capabilities:
+        display_capabilities(m)
+    elif args.is_supported:
+        models = query_model_support(m, args.is_supported)
+        for model in models:
+            print(model)
 
     #
     # Orderly teardown of the netconf session.
