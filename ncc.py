@@ -187,9 +187,7 @@ if __name__ == '__main__':
     # Finally, parse the arguments!
     #
     args = parser.parse_args()
-        
 
-    #
 
     #
     named_filters = Environment(loader=FileSystemLoader(
