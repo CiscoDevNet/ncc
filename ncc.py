@@ -4,8 +4,10 @@ import os
 from argparse import ArgumentParser
 from ncclient import manager
 from jinja2 import Environment
+from jinja2.exceptions import UndefinedError
 from jinja2 import meta
 from jinja2 import FileSystemLoader
+from jinja2 import StrictUndefined
 from jinja2 import Template
 from lxml import etree
 import logging
@@ -44,6 +46,7 @@ CANDIDATE = False
 NCC_DIR, _ = os.path.split(os.path.realpath(__file__))
 
 
+
 def list_templates(header, source_env):
     """List out all the templates in the provided environment, parse them
     and extract variables that should be provided.
@@ -64,9 +67,15 @@ def do_templates(m, t_list, default_op='merge', **kwargs):
     """Execute a list of templates, using the kwargs passed in to
     complete the rendering.
     """
-    for t in t_list:
-        tmpl = named_templates.get_template('%s.tmpl' % t)
-        data = tmpl.render(kwargs)
+
+    for tmpl in t_list:
+        try:
+            data = tmpl.render(kwargs)
+        except UndefinedError as e:
+            print "Undefined variable %s.  Use --params to specify json dict" % e.message
+            # assuming we should fail if a single template fails?
+            exit(1)
+
         if CANDIDATE:
             m.edit_config(data,
                           format='xml',
@@ -131,21 +140,23 @@ if __name__ == '__main__':
     parser.add_argument('--default-op', type=str, default='merge',
                         help="The NETCONF default operation to use (default 'merge')")
 
+    parser.add_argument('-w', '--where', action='store_true',
+                        help="Print where script is and exit")
+
     #
     # Where we want to source snippets from
     #
-    parser.add_argument('--snippets', type=str, default=NCC_DIR,
+    parser.add_argument('--snippets', type=str, default="%s/snippets" % NCC_DIR,
                         help="Directory where 'snippets' can be found; default is location of script")
-    
+
     #
     # Various operation parameters. These will be put into a kwargs
     # dictionary for use in template rendering.
     #
-    parser.add_argument('--params', type=str, 
+    parser.add_argument('--params', type=str,
                         help="JSON-encoded string of parameters dictionaryfor templates")
     parser.add_argument('--params-file', type=str,
                         help="JSON-encoded file of parameters dictionary for templates")
-
     #
     # Only one type of filter allowed.
     #
@@ -176,15 +187,15 @@ if __name__ == '__main__':
     # Finally, parse the arguments!
     #
     args = parser.parse_args()
-        
+
 
     #
-    # Now we can initialze the snippets
-    #
     named_filters = Environment(loader=FileSystemLoader(
-        '%s/snippets/filters' % args.snippets))
+        '%s/filters' % args.snippets),
+        undefined=StrictUndefined)
     named_templates = Environment(loader=FileSystemLoader(
-        '%s/snippets/editconfigs' % args.snippets))
+        '%s/editconfigs' % args.snippets),
+        undefined = StrictUndefined)
 
     #
     # Do the named template/filter listing first, then exit.
@@ -209,6 +220,7 @@ if __name__ == '__main__':
     #
     # set up various keyword arguments that have specific arguments
     #
+
     kwargs = None
     if args.params:
         kwargs = json.loads(args.params)
@@ -223,8 +235,12 @@ if __name__ == '__main__':
     # This populates the filter if it's a canned filter.
     #
     if args.named_filter:
-        args.filter = named_filters.get_template(
-            '%s.tmpl' % args.named_filter).render(**kwargs)
+        try:
+            args.filter = named_filters.get_template(
+                '%s.tmpl' % args.named_filter).render(**kwargs)
+        except UndefinedError as e:
+            print "Undefined variable %s.  Use --params to specify json dict" % e.message
+            exit(1)
 
     #
     # Could use this extra param instead of the last four arguments
@@ -253,26 +269,31 @@ if __name__ == '__main__':
     if NC_CANDIDATE in m.server_capabilities:
         CANDIDATE = True
 
-    #
-    # Now we actually do something!!
-    #
+
     if args.get_running:
-        if args.xpath:
-            get_running_config(m, xpath=args.xpath)
-        else:
-            get_running_config(m, filter=args.filter)
+        # if args.xpath:
+        #     get_running_config(m, xpath=args.xpath)
+        # else:
+        #     get_running_config(m, filter=args.filter)
+        get_running_config(m, xpath=args.xpath, filter=args.filter)
+
     elif args.get_oper:
-        if args.xpath:
-            get(m, xpath=args.xpath)
-        else:
-            get(m, filter=args.filter)
+        #if args.xpath:
+        #    get(m, xpath=args.xpath)
+        #else:
+        #    get(m, filter=args.filter)
+        get(m, filter=args.filter, xpath=args.xpath)
     elif args.do_edits:
         do_templates( m,
                       [named_templates.get_template('%s.tmpl' % t) for t in args.do_edits],
                       default_op=args.default_op,
                       **kwargs)
 
+
     #
     # Orderly teardown of the netconf session.
-    #
-    m.close_session()
+    # Ignore Value error sometimes returned in cleanup
+    try:
+        m.close_session()
+    except ValueError:
+        pass
