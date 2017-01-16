@@ -130,7 +130,7 @@ def query_model_support(m, re_module):
 def list_templates(header, source_env):
     """List out all the templates in the provided environment, parse them
     and extract variables that should be provided.
-    UPDATED To present the VARS in JSON dict
+    UPDATED To present the VARS as JSON dict with enpty values
     """
     print(header)
     env = Environment()
@@ -362,17 +362,9 @@ if __name__ == '__main__':
 
 
     if args.get_running:
-        # if args.xpath:
-        #     get_running_config(m, xpath=args.xpath)
-        # else:
-        #     get_running_config(m, filter=args.filter)
         get_running_config(m, xpath=args.xpath, filter=args.filter)
 
     elif args.get_oper:
-        #if args.xpath:
-        #    get(m, xpath=args.xpath)
-        #else:
-        #    get(m, filter=args.filter)
         get(m, filter=args.filter, xpath=args.xpath)
     elif args.do_edits:
         do_templates( m,
