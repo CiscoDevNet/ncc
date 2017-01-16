@@ -205,14 +205,15 @@ Additionally, this example shows how to use case-insentitive regex matches in Py
 
 Snippets are a way to pre-define edit-config messages or complex filters that you want to use from the command line. Snippets are simple Jinja2 templates, with parameters provided either from the command line or via a file.
 
-> **NOTE** Snippets directory location and customization text here currently out of date.
+Snippets are by default found in a directory  ```snippets``` colocated with the ```ncc.py``` script.
+Named subtree filters are stored in [snippets/filters](snippets/filters) and named edit-config templates are stored in [snippets/editconfigs](snippets/editconfigs). The naming convention is fairly obvious; templates files end in ```.tmpl```, but when referred to via CLI arguments the extension is ommitted.
 
-Snippets are by default found in a directory name ```snippets```, colocated with the ```ncc.py``` script. Named subtree filters are stored in [snippets/filters](snippets/filters) and named edit-config templates are stored in [snippets/editconfigs](snippets/editconfigs). The naming convention is fairly obvious; templates files end in ```.tmpl```, but when referred to via CLI arguments the extension is ommitted.
-
-The command line option ```--snippets``` may be used to define an alternate location for the ```snippets``` directory. A directory structure as shown below must exist in the location pointed to by the ```--snippets``` parameter:
+The command line option ```--snippets``` may be used to define an alternate location for the ```snippets``` directory.
+A directory structure as shown below must exist in the location pointed to by the ```--snippets``` parameter.
+For example, ```--snippets ./snippets-xe``` would expect the following directory structure.
 
 ```
-snippets
+snippets-xe
 ├── editconfigs
 └── filters
 ```
@@ -282,6 +283,19 @@ $ python ncc.py --host=192.239.42.222 --get-oper --named-filter intf-brief --par
   </interfaces>
  </data>
 
+```
+If you do not supply all of the required vars, you will get an error when using the template.  For example in the above
+
+```
+python ncc.py --host=192.239.42.222 --get-oper --named-filter intf-brief
+Undefined variable 'INTF_NAME' is undefined.  Use --params to specify json dict
+
+```
+
+If you wish to leave a variable empty (for example in a filter, rather than edit-config, you can just specify it as ""
+
+```
+{"INTF_NAME" : ""}
 ```
 
 When edit-config templates or filters are listed (```--list-templates``` or ```--list-filters```), the variables that need to be substituted are also listed. For example:

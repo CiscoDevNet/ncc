@@ -24,6 +24,7 @@ LOGGING_TO_ENABLE = [
     'ncclient.operations.rpc'
 ]
 
+
 #
 # Capability constants
 #
@@ -41,7 +42,6 @@ CANDIDATE = False
 # templates and filters unless overriden.
 #
 NCC_DIR, _ = os.path.split(os.path.realpath(__file__))
-
 
 def display_capabilities(m):
     """Display the capabilities in a useful, categorized way.
@@ -125,10 +125,10 @@ def query_model_support(m, re_module):
                 matches.append(model)
     return matches
 
-
 def list_templates(header, source_env):
     """List out all the templates in the provided environment, parse them
     and extract variables that should be provided.
+    UPDATED To present the VARS as JSON dict with enpty values
     """
     print(header)
     env = Environment()
@@ -137,9 +137,15 @@ def list_templates(header, source_env):
         with open(tfile, 'r') as f:
             vars = meta.find_undeclared_variables(env.parse(f.read()))
             f.close()
-            print("  {}".format(tname.replace('.tmpl', '')))
-            for v in sorted(vars):
-                print('    %s' % v)
+            print("  {}".format(tname.replace('.tmpl', ''))),
+            if vars:
+                print ":{",
+                #for v in sorted(vars):
+                #    print('"%s" : ""' % v),
+                print ','.join(['"%s" : ""' %v for v in sorted(vars)]) ,
+                print "}"
+            else:
+                print
 
 
 def do_templates(m, t_list, default_op='merge', **kwargs):
@@ -173,6 +179,7 @@ def get_running_config(m, filter=None, xpath=None):
     """Get running config with a passed in filter. If both types of
     filter are passed in for some reason, the subtree filter "wins".
     """
+    import time
     if filter and len(filter) > 0:
         c = m.get_config(source='running', filter=('subtree', filter))
     elif xpath and len(xpath)>0:
@@ -205,9 +212,9 @@ if __name__ == '__main__':
     #
     parser.add_argument('--host', type=str, default='127.0.0.1',
                         help="The IP address for the device to connect to (default localhost)")
-    parser.add_argument('-u', '--username', type=str, default='cisco',
+    parser.add_argument('-u', '--username', type=str, default=os.environ.get('NCC_USERNAME', 'cisco1'),
                         help="Username to use for SSH authentication (default 'cisco')")
-    parser.add_argument('-p', '--password', type=str, default='cisco',
+    parser.add_argument('-p', '--password', type=str, default=os.environ.get('NCC_PASSWORD', 'cisco'),
                         help="Password to use for SSH authentication (default 'cisco')")
     parser.add_argument('--port', type=int, default=830,
                         help="Specify this if you want a non-default port (default 830)")
@@ -224,7 +231,7 @@ if __name__ == '__main__':
     #
     # Where we want to source snippets from
     #
-    parser.add_argument('--snippets', type=str, default="%s/snippets" % NCC_DIR,
+    parser.add_argument('--snippets', type=str, default=os.environ.get('NCC_SNIPPETS', "%s/snippets" % NCC_DIR),
                         help="Directory where 'snippets' can be found; default is location of script")
 
     #
@@ -303,6 +310,7 @@ if __name__ == '__main__':
     #
     # set up various keyword arguments that have specific arguments
     #
+
     kwargs = None
     if args.params:
         kwargs = json.loads(args.params)
@@ -353,17 +361,9 @@ if __name__ == '__main__':
 
 
     if args.get_running:
-        # if args.xpath:
-        #     get_running_config(m, xpath=args.xpath)
-        # else:
-        #     get_running_config(m, filter=args.filter)
         get_running_config(m, xpath=args.xpath, filter=args.filter)
 
     elif args.get_oper:
-        #if args.xpath:
-        #    get(m, xpath=args.xpath)
-        #else:
-        #    get(m, filter=args.filter)
         get(m, filter=args.filter, xpath=args.xpath)
     elif args.do_edits:
         do_templates( m,
