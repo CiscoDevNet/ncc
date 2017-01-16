@@ -385,5 +385,4 @@ if __name__ == '__main__':
     try:
         m.close_session()
     except ValueError:
-        print "caught"
         pass
