@@ -214,9 +214,9 @@ if __name__ == '__main__':
     #
     parser.add_argument('--host', type=str, default='127.0.0.1',
                         help="The IP address for the device to connect to (default localhost)")
-    parser.add_argument('-u', '--username', type=str, default='cisco',
+    parser.add_argument('-u', '--username', type=str, default=os.environ.get('NCC_USERNAME', 'cisco1'),
                         help="Username to use for SSH authentication (default 'cisco')")
-    parser.add_argument('-p', '--password', type=str, default='cisco',
+    parser.add_argument('-p', '--password', type=str, default=os.environ.get('NCC_PASSWORD', 'cisco'),
                         help="Password to use for SSH authentication (default 'cisco')")
     parser.add_argument('--port', type=int, default=830,
                         help="Specify this if you want a non-default port (default 830)")
@@ -233,7 +233,7 @@ if __name__ == '__main__':
     #
     # Where we want to source snippets from
     #
-    parser.add_argument('--snippets', type=str, default="%s/snippets" % NCC_DIR,
+    parser.add_argument('--snippets', type=str, default=os.environ.get('NCC_SNIPPETS', "%s/snippets" % NCC_DIR),
                         help="Directory where 'snippets' can be found; default is location of script")
 
     #
