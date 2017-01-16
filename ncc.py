@@ -31,13 +31,11 @@ LOGGING_TO_ENABLE = [
 NC_WRITABLE_RUNNING = 'urn:ietf:params:netconf:capability:writable-running:1.0'
 NC_CANDIDATE = 'urn:ietf:params:netconf:capability:candidate:1.0'
 
-
 #
 # By default, don't support writeable-running or candidate configs
 #
 RUNNING = False
 CANDIDATE = False
-
 
 #
 # Get where the script is; we will use this to find snippets for
@@ -258,7 +256,7 @@ if __name__ == '__main__':
     #
     # Mutually exclusive operations.
     #
-    g = parser.add_mutually_exclusive_group()
+    g = parser.add_mutually_exclusive_group(required=True)
     g.add_argument('-c', '--capabilities', action='store_true',
                    help="Display capabilities of the device.")
     g.add_argument('--is-supported', type=str,
@@ -272,14 +270,15 @@ if __name__ == '__main__':
     g.add_argument('--get-oper', action='store_true',
                    help="Get oper data")
     g.add_argument('--do-edits', type=str, nargs='+',
-                   help="Execute a sequence of named templates with an optional default operation and a single commit")
+                   help="Execute a sequence of named templates with an optional default operation and a single commit when candidate config supported. If only writable-running support, ALL operations will be attempted.")
 
     #
     # Finally, parse the arguments!
     #
     args = parser.parse_args()
 
-
+    #
+    # Setup the templates for use.
     #
     named_filters = Environment(loader=FileSystemLoader(
         '%s/filters' % args.snippets),
