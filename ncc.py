@@ -130,6 +130,7 @@ def query_model_support(m, re_module):
 def list_templates(header, source_env):
     """List out all the templates in the provided environment, parse them
     and extract variables that should be provided.
+    UPDATED To present the VARS in JSON dict
     """
     print(header)
     env = Environment()
@@ -138,9 +139,15 @@ def list_templates(header, source_env):
         with open(tfile, 'r') as f:
             vars = meta.find_undeclared_variables(env.parse(f.read()))
             f.close()
-            print("  {}".format(tname.replace('.tmpl', '')))
-            for v in sorted(vars):
-                print('    %s' % v)
+            print("  {}".format(tname.replace('.tmpl', ''))),
+            if vars:
+                print ":{",
+                #for v in sorted(vars):
+                #    print('"%s" : ""' % v),
+                print ','.join(['"%s" : ""' %v for v in sorted(vars)]) ,
+                print "}"
+            else:
+                print
 
 
 def do_templates(m, t_list, default_op='merge', **kwargs):
