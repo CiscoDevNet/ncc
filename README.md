@@ -314,7 +314,9 @@ Edit-config templates:
 
 ## Running The Jupyter Notebooks
 
-The jupyter notebook server should be run inside the same Python virtualenv as you created above for running the Python scripts. The notebook server is run up thus:
+The jupyter notebook server should be run inside the same Python virtualenv as you created above for running the Python scripts, with one addition, which is to run ```pip install jupyter``` in the virtual environment, as it is not currently listed in the [```requirements.txt```](requirements.txt) file.
+
+Once Jupyter installed, the notebook server is run up thus:
 
 ```
 EINARNN-M-D10Q:ncc einarnn$ pwd
