@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import print_function
 from BeautifulSoup import BeautifulSoup
 from argparse import ArgumentParser
 from lxml import etree
@@ -14,7 +15,7 @@ import repoutil
 import string
 import sys
 import time
-
+from git.exc import GitCommandError
 
 #
 # Check models script
@@ -147,6 +148,12 @@ schemas_filter = '''<netconf-state xmlns="urn:ietf:params:xml:ns:yang:ietf-netco
 </netconf-state>'''
 
 #
+# print to stderr
+#
+def eprint(*args, **kwargs):
+    print(*args, file=sys.stderr, **kwargs)
+
+#
 # return an etree of the data retrieved
 #
 def get(m, filter=None):
@@ -165,9 +172,9 @@ def get_schema(m, schema_nodes, output_dir):
         try:
             c = m.get_schema(s, version=v)
             with open(output_dir+'/'+s+'@'+v+'.yang', 'w') as yang:
-                print >>yang, BeautifulSoup(
-                    c.xml,
-                    convertEntities=BeautifulSoup.HTML_ENTITIES).find('data').getText()
+                print(BeautifulSoup(c.xml,
+                                    convertEntities=BeautifulSoup.HTML_ENTITIES).find('data').getText(),
+                      file=yang)
                 yang.close()
         except RPCError as e:
             failed_download.append((s,v))
@@ -368,12 +375,12 @@ if __name__ == '__main__':
                 try:
                     mib = get(mgr, mib_filter)
                     if args.display_MIBs_sw:
-                        print mib_name
+                        print(mib_name)
                         soup = BeautifulSoup(mib)
-                        print (soup.prettify())
+                        print(soup.prettify())
                 except RPCError as e:
-                    print mib_name
-                    print e
+                    print(mib_name)
+                    print(e)
         fd = open(targetdir+'/'+fname, 'r')
         text = fd.read()
         ctx.add_module(fname, text)
@@ -406,7 +413,7 @@ if __name__ == '__main__':
             try:
                 c = mgr.get_schema(m)
                 with open(targetdir+'/'+m+'.yang', 'w') as yang:
-                    print >>yang, c.data
+                    print(c.data, file=yang)
                     yang.close()
             except RPCError as e:
                 failed_download.add(str(m))
@@ -436,7 +443,12 @@ if __name__ == '__main__':
     #
     # Commit everything to local repo and push to origin
     #
-    repo.add_all_untracked()
-    repo.commit_all(message='Push version %s models.' % ver)
-    repo.push()
+    try:
+        repo.add_all_untracked()
+        repo.commit_all(message='Push version %s models.' % ver)
+        repo.push()
+    except GitCommandError as e:
+        eprint("Add, Commit Or Push Failed:")
+        eprint(e.stdout)
+        eprint(e.stderr)
     repo.remove()
