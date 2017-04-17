@@ -139,6 +139,12 @@ if __name__ == '__main__':
             m = model.group(1)
             if m not in schema_list:
                 not_in_schemas.add(m)
+            deviations = re.search('deviations=([^&<]*)', c)
+            if deviations is not None:
+                d = deviations.group(1)
+                for dfn in d.split(','):
+                    if dfn not in schema_list:
+                        not_in_schemas.add(dfn)
     if len(not_in_schemas) > 0:
         print('The following models are advertised in capabilities but are not in schemas tree:')
         for m in sorted(not_in_schemas):
