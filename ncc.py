@@ -212,7 +212,7 @@ if __name__ == '__main__':
     #
     parser.add_argument('--host', type=str, default='127.0.0.1',
                         help="The IP address for the device to connect to (default localhost)")
-    parser.add_argument('-u', '--username', type=str, default=os.environ.get('NCC_USERNAME', 'cisco1'),
+    parser.add_argument('-u', '--username', type=str, default=os.environ.get('NCC_USERNAME', 'cisco'),
                         help="Username to use for SSH authentication (default 'cisco')")
     parser.add_argument('-p', '--password', type=str, default=os.environ.get('NCC_PASSWORD', 'cisco'),
                         help="Password to use for SSH authentication (default 'cisco')")
