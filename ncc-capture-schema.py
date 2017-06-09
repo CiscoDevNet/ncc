@@ -7,7 +7,7 @@ from ncclient import manager
 from ncclient.operations.rpc import RPCError
 from netmiko import ConnectHandler
 from os import listdir, makedirs
-from os.path import isfile, join, basename, exists
+from os.path import isfile, join, basename, exists, getsize
 import logging
 import pyang
 import re
@@ -15,6 +15,7 @@ import repoutil
 import string
 import sys
 import time
+import json
 from git.exc import GitCommandError
 
 #
@@ -184,45 +185,45 @@ def get_schema(m, schema_nodes, output_dir):
 if __name__ == '__main__':
 
     parser = ArgumentParser(description='Provide device and output parameters:')
-    
+
     parser.add_argument('-a', '--host', type=str, required=True,
                         help="The device IP or DN")
-    
+
     parser.add_argument('--port', type=int, required=False, default=830,
                         help="Optional port to contact for netconf")
-    
+
     parser.add_argument('--ssh-port', type=int, required=False, default=22,
                         help="Optional port to contact for plain ssh")
 
     parser.add_argument('--device-type', type=str, default='cisco_xr',
                         help="Device type connecting to for netmiko")
-    
+
     parser.add_argument('-u', '--username', type=str, default='cisco',
                         help="Go on, guess!")
-    
+
     parser.add_argument('-p', '--password', type=str, default='cisco',
                         help="Yep, this one too! ;-)")
-    
+
     parser.add_argument('-t', '--timeout', type=int, required=False, default=30,
                         help="Netconf timeout; needed for slow devices")
-    
+
     parser.add_argument('--process-MIBs', action="store_true", default=False,
                         dest="process_MIBs_sw",
                         help="Specify this to process advertised MIBs")
-    
+
     parser.add_argument('--display-MIBs', action="store_true", default=False,
                         dest="display_MIBs_sw",
                         help="Specify this to process and display advertised MIBs")
 
     parser.add_argument('--git-repo', required=True, type=str,
                         help='Git reository to capture data to; should include any credentials required')
-    
+
     parser.add_argument('--git-path', required=True, type=str,
                         help='Relative path in git repository to place schema and capabilities')
-    
+
     parser.add_argument('-v', '--verbose', action='store_true',
                         help="Do some verbose logging")
-    
+
     args = parser.parse_args()
 
     #
@@ -241,7 +242,16 @@ if __name__ == '__main__':
     #
     ver = 'unknown'
     os = 'unknown'
-    
+    platform_metadata = {
+          'vendor': 'cisco',
+          'models': [],
+          'name': '',
+          'os-type': '',
+          'software-flavor': '',
+          'software-version': '',
+          'capabilities-file': ''
+    }
+
     #
     # Connect over netmiko
     #
@@ -251,28 +261,73 @@ if __name__ == '__main__':
                        username=args.username,
                        password=args.password)
     version_output = d.send_command('show version')
+
     if args.device_type=='cisco_xr':
         os = 'xr'
+        platform_metadata['os-type'] = 'IOS-XR'
+        # TODO What do we want to track for software flavor?
+        platform_metadata['software-flavor'] = 'ALL'
+        inventory_output = d.send_command('show inventory all | begin Chassis')
         v = re.search(
-            'Version +: +([0-9\.A-Z]+)\n',
+            r'Version +: +([0-9\.A-Z]+)\n',
             version_output)
         if v is not None:
             ver = v.group(1)
+            platform_metadata['software-version'] = v.group(1)
+
+        pn = re.search(
+             r'^cisco ([^\(]+)\(',
+             version_output, re.M)
+        if pn is not None:
+            platform_metadata['name'] = re.sub('Series', '', pn.group(1)).strip()
+
+        pid = re.search(
+              r'PID: ([^,]+),', inventory_output)
+        if pid is not None:
+            platform_metadata['models'].append(pid.group(1).strip())
+        else:
+            inventory_output = d.send_command('show inventory rack')
+            pid = re.search(
+                  r'^\s+ 0\s+([^\s]+)',
+                  inventory_output, re.M)
+            if pid is not None:
+                platform_metadata['models'].append(pid.group(1))
     elif args.device_type=='cisco_ios':
         os = 'xe'
+        platform_metadata['os-type'] = 'IOS-XE'
+        # TODO: Do we want to track licenses for XE here?
+        platform_metadata['software-flavor'] = 'ALL'
+        inventory_output = d.send_command('show inventory')
         v = re.search(
-            'Cisco IOS XE Software, Version ([a-zA-Z0-9_\.]+)',
+            r'Cisco IOS XE Software, Version ([a-zA-Z0-9_\.]+)',
             version_output)
         if v is not None:
             ver = v.group(1)
+            platform_metadata['software-version'] = v.group(1)
+
+        # This pattern seems complex, but it allows us to get the "C3850" part out
+        # of "WS-C3850-48P" as an example.
+        pn = re.search(
+             r'^cisco (WS-)?([a-zA-Z0-9\-/]+)(-[0-9][0-9A-Z]+)? \([^)]+) processor',
+             version_output, re.M)
+        if pn is not None:
+            platform_metadata['name'] = pn.group(2)
+
+        pid = re.search(
+              r'PID: ([^,]+),', inventory_output)
+        if pid is not None:
+            platform_metadata['models'].append(pid.group(1).strip())
+
     args.git_path = '%s/%s/%s' % (args.git_path, os, ver)
-    
+
     #
     # Pull down the repo and create the file output directory
     #
     repo = repoutil.RepoUtil(args.git_repo)
     repo.clone()
     targetdir = repo.localdir + '/' + args.git_path
+    caps_file = targetdir + '/' + platform_metdata['name'].lower() + '-capabilities.xml'
+    platform_metadata['capabilities-file'] = caps_file
     if not exists(targetdir):
         makedirs(targetdir)
 
@@ -280,7 +335,7 @@ if __name__ == '__main__':
     # targetdir = '.' + '/' + args.git_path
     # if not exists(targetdir):
     #     makedirs(targetdir)
-    
+
     #
     # Connect to the router
     #
@@ -297,9 +352,36 @@ if __name__ == '__main__':
                            unknown_host_cb=unknown_host_cb)
 
     #
+    # Save out metadata (append if it exists)
+    #
+    md_file = targetdir + '/' + 'platform-metadata.json'
+    md = { 'platforms': [] }
+    if isfile(md_file) and getsize(md_file) > 0:
+        mdfile = open(md_file, 'r')
+        md = json.load(mdfile)
+        mdfile.close()
+
+        found_platform = False
+        for platform in md['platforms']:
+            if platform['vendor']=='cisco' and platform['name']==platform_metadata['name']:
+                found_platform = True
+                if platform_metadata['models'][0] not in platform['models']:
+                    platform['models'].append(platform_metadata['models'][0])
+                break
+
+        if not found_platform:
+            md['platforms'].append(platform_metadata)
+    else:
+        md['platforms'].append(platform_metadata)
+
+    mdfile = open(md_file, 'w')
+    json.dump(md, mdfile, indent=4)
+    mdfile.close()
+
+    #
     # Save out capabilities
     #
-    with open(targetdir+'/'+'capabilities.xml', 'w') as capsfile:
+    with open(caps_file, 'w') as capsfile:
         capsfile.write('''<hello xmlns="urn:ietf:params:xml:ns:netconf:base:1.0">\n <capabilities>\n''')
         for c in mgr.server_capabilities:
             capsfile.write('  <capability>{}</capability>\n'.format(c))
@@ -313,7 +395,7 @@ if __name__ == '__main__':
     reportfile.write('# Schema & Capabilities Capture Report\n\n')
     reportfile.write('- Operating System: %s\n' % os)
     reportfile.write('- Version: %s\n\n' % ver)
-    
+
     #
     # retrieve the schemas datatree and extract all the schema
     # identifiers
@@ -323,7 +405,7 @@ if __name__ == '__main__':
     schema_nodes = [(s.findChild('identifier').getText(),
                      s.findChild('version').getText())
                     for s in soup.findAll('schema')]
-    
+
     #
     # check the schema list against server capabilities
     #
@@ -339,7 +421,7 @@ if __name__ == '__main__':
         reportfile.write('The following models are advertised in capabilities but are not in schemas tree:\n\n')
         for m, v in sorted(not_in_schemas):
             write('- {}, revision={}\n'.format(m, v))
-    
+
     #
     # this dict is for keeping track of the schemas that failed to
     # download
@@ -417,7 +499,7 @@ if __name__ == '__main__':
                     yang.close()
             except RPCError as e:
                 failed_download.add(str(m))
-            
+
     #
     # List out the schema that are imported or included and NOT
     # downloaded successfully.
@@ -439,7 +521,7 @@ if __name__ == '__main__':
     # cleanup
     #
     reportfile.close()
-    
+
     #
     # Commit everything to local repo and push to origin
     #
