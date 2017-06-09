@@ -279,7 +279,7 @@ if __name__ == '__main__':
              r'^cisco ([^\(]+)\(',
              version_output, re.M)
         if pn is not None:
-            platform_metadata['name'] = re.sub('Series', '', pn.group(1)).strip()
+            platform_metadata['name'] = pn.group(1).replace('Series', '').strip().replace(' ', '-')
 
         pid = re.search(
               r'PID: ([^,]+),', inventory_output)
