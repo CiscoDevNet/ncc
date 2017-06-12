@@ -317,6 +317,27 @@ if __name__ == '__main__':
               r'PID: ([^,]+),', inventory_output)
         if pid is not None:
             platform_metadata['models'].append(pid.group(1).strip())
+    elif args.device_type=='cisco_nxos':
+        os = 'nx'
+        platform_metadata['os-type'] = 'NX-OS'
+        # TODO: What do we want to track for NX-OS?
+        platform_metadata['software-flavor'] = 'ALL'
+        inventory_output = d.send_command('show inventory')
+        v = re.search(r'^\s+NXOS: version ([0-9A-Za-z\.\(\)_]+)',
+            version_output, re.M)
+        if v is not None:
+            ver = v.group(1).replace('(', '-').replace(')', '-').strip('-')
+            platform_metadata['software-version'] = ver
+
+        pn = re.search(r'^\s+cisco ([^\s]+)\s.*Chassis',
+             version_output, re.M)
+        if pn is not None:
+            platform_metadata['name'] = pn.group(1)
+
+        pid = re.search(
+              r'PID: ([^,]+),', inventory_output)
+        if pid is not None:
+            platform_metadata['models'].append(pid.group(1).strip())
 
     args.git_path = '%s/%s/%s' % (args.git_path, os, ver)
 
