@@ -249,7 +249,7 @@ if __name__ == '__main__':
           'os-type': '',
           'software-flavor': '',
           'software-version': '',
-          'capabilities-file': ''
+          'capabilities-file': {}
     }
 
     #
@@ -348,7 +348,9 @@ if __name__ == '__main__':
     repo.clone()
     targetdir = repo.localdir + '/' + args.git_path
     caps_file = targetdir + '/' + platform_metdata['name'].lower() + '-capabilities.xml'
-    platform_metadata['capabilities-file'] = caps_file
+    platform_metadata['capabilities-file']['path'] = caps_file
+    platform_metadata['capabilities-file']['owner'] = repo.get_owner()
+    platform_metadata['capabilities-file']['repo'] = repo.get_repo_dir()
     if not exists(targetdir):
         makedirs(targetdir)
 
