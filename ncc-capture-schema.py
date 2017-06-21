@@ -347,8 +347,9 @@ if __name__ == '__main__':
     repo = repoutil.RepoUtil(args.git_repo)
     repo.clone()
     targetdir = repo.localdir + '/' + args.git_path
-    caps_file = targetdir + '/' + platform_metdata['name'].lower() + '-capabilities.xml'
-    platform_metadata['capabilities-file']['path'] = caps_file
+    caps_name = platform_metdata['name'].lower() + '-capabilities.xml'
+    caps_file = targetdir + '/' + caps_name
+    platform_metadata['capabilities-file']['path'] = args.git_path + '/' + caps_name
     platform_metadata['capabilities-file']['owner'] = repo.get_owner()
     platform_metadata['capabilities-file']['repo'] = repo.get_repo_dir()
     if not exists(targetdir):
