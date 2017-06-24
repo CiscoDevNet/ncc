@@ -327,7 +327,7 @@ if __name__ == '__main__':
             version_output, re.M)
         if v is not None:
             ver = v.group(1).replace('(', '-').replace(')', '-').strip('-')
-            platform_metadata['software-version'] = ver
+            platform_metadata['software-version'] = v.group(1)
 
         pn = re.search(r'^\s+cisco ([^\s]+)\s.*Chassis',
              version_output, re.M)
