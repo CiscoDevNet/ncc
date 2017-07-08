@@ -34,6 +34,12 @@ if __name__ == '__main__':
                         help="Specify this if you want a non-default port")
     parser.add_argument('-v', '--verbose', action='store_true',
                         help="Do I really need to explain?")
+    
+    g = parser.add_mutually_exclusive_group(required=True)
+    g.add_argument('--period', type=int,
+                   help="Period in centiseconds for periodic subscription")
+    g.add_argument('--dampening-period', type=int,
+                   help="Dampening period in centiseconds for on-change subscription")
 
     args = parser.parse_args()
 
@@ -68,19 +74,22 @@ if __name__ == '__main__':
         print('Subscription Id : %d' % notif.subscription_id)
         print('Type            : %d' % notif.type)
         print('Data            :')
-        print(notif.data_xml)
+        print(etree.tostring(notif.datastore_ele, pretty_print=True))
     def errback(notif):
         pass
     
     #
-    # create the subscription
+    # Create the subscription. We can pass both period and dampening
+    # period because the mutually exclusive group used in argument
+    # parsing protexts us.
     #
     s = m.establish_subscription(
         callback, errback,
         xpath='/cdp-ios-xe-oper:cdp-neighbour-details/cdp-neighbour-detail',
-        period=500)
-    print(s.result_xml)
-    print(s.id_xml)
+        period=args.period,
+        dampening_period=args.dampening_period)
+    print(etree.tostring(s.result_ele, pretty_print=True))
+    print(etree.tostring(s.id_ele, pretty_print=True))
 
     # simple blocking read
     while True:
