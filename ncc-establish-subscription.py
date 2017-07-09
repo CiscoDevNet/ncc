@@ -8,6 +8,10 @@ import time
 import datetime
 from ncclient.transport.session import SessionListener
 
+#
+# some useful constants
+#
+CISCO_CDP_OPER_NS = 'http://cisco.com/ns/yang/Cisco-IOS-XE-cdp-oper'
 
 def get(m, filter=None, xpath=None):
     if filter and len(filter) > 0:
@@ -69,12 +73,44 @@ if __name__ == '__main__':
     # a pair of really simple callbacks...
     #
     def callback(notif):
-        print('--')
+        print('-->>')
         print('Event time      : %s' % notif.event_time)
         print('Subscription Id : %d' % notif.subscription_id)
         print('Type            : %d' % notif.type)
         print('Data            :')
         print(etree.tostring(notif.datastore_ele, pretty_print=True))
+        print('<<--')
+
+    def callback_device_names(notif):
+        print('-->>')
+        device_names = [
+            b.text
+            for b in notif.datastore_ele.iterfind(
+                    ".//{%s}device-name" % CISCO_CDP_OPER_NS)
+        ]
+        print('Event time      : %s' % notif.event_time)
+        print('Subscription Id : %d' % notif.subscription_id)
+        print('Type            : %d' % notif.type)
+        print('Device Names    :')
+        for d in device_names:
+            print('    %s' % d)
+        print('<<--')
+
+    def callback_mgmt_addresses(notif):
+        print('-->>')
+        mgmt_addresses = [
+            b.text
+            for b in notif.datastore_ele.iterfind(
+                    ".//{%s}mgmt-address" % CISCO_CDP_OPER_NS)
+        ]
+        print('Event time      : %s' % notif.event_time)
+        print('Subscription Id : %d' % notif.subscription_id)
+        print('Type            : %d' % notif.type)
+        print('Mgmt Addresses  :')
+        for m in mgmt_addresses:
+            print('    %s' % m)
+        print('<<--')
+
     def errback(notif):
         pass
     
@@ -84,13 +120,14 @@ if __name__ == '__main__':
     # parsing protexts us.
     #
     s = m.establish_subscription(
-        callback, errback,
+        callback_mgmt_addresses,
+        errback,
         xpath='/cdp-ios-xe-oper:cdp-neighbour-details/cdp-neighbour-detail',
         period=args.period,
         dampening_period=args.dampening_period)
-    print(etree.tostring(s.result_ele, pretty_print=True))
-    print(etree.tostring(s.id_ele, pretty_print=True))
+    print('Subscription Result : %s' % s.subscription_result)
+    print('Subscription Id     : %d' % s.subscription_id)
 
-    # simple blocking read
+    # simple forever loop
     while True:
         time.sleep(5)
