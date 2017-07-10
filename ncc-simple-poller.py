@@ -21,7 +21,7 @@ def get(m, filter=None, xpath=None):
         
 if __name__ == '__main__':
 
-    parser = ArgumentParser(description='Select your siple poller parameters:')
+    parser = ArgumentParser(description='Select your simple poller parameters:')
 
     # Input parameters
     parser.add_argument('--host', type=str, required=True,
