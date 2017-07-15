@@ -351,7 +351,7 @@ if __name__ == '__main__':
     caps_file = targetdir + '/' + caps_name
     platform_metadata['capabilities-file']['path'] = args.git_path + '/' + caps_name
     platform_metadata['capabilities-file']['owner'] = repo.get_owner()
-    platform_metadata['capabilities-file']['repo'] = repo.get_repo_dir()
+    platform_metadata['capabilities-file']['repository'] = repo.get_repo_dir()
     if not exists(targetdir):
         makedirs(targetdir)
 
