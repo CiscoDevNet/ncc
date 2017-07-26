@@ -343,7 +343,7 @@ if __name__ == '__main__':
     def unknown_host_cb(host, fingerprint):
         return True
 
-    device_params = None
+    device_params = {}
     if args.device_type is not None:
         device_params = {'name': args.device_type}
 
