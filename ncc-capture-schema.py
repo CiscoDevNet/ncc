@@ -244,7 +244,7 @@ if __name__ == '__main__':
     os = 'unknown'
     platform_metadata = {
           'vendor': 'cisco',
-          'models': [],
+          'product-ids': [],
           'name': '',
           'os-type': '',
           'software-flavor': '',
@@ -284,14 +284,14 @@ if __name__ == '__main__':
         pid = re.search(
               r'PID: ([^,]+),', inventory_output)
         if pid is not None:
-            platform_metadata['models'].append(pid.group(1).strip())
+            platform_metadata['product-ids'].append(pid.group(1).strip())
         else:
             inventory_output = d.send_command('show inventory rack')
             pid = re.search(
                   r'^\s+ 0\s+([^\s]+)',
                   inventory_output, re.M)
             if pid is not None:
-                platform_metadata['models'].append(pid.group(1))
+                platform_metadata['product-ids'].append(pid.group(1))
     elif args.device_type=='cisco_ios':
         os = 'xe'
         platform_metadata['os-type'] = 'IOS-XE'
@@ -316,7 +316,7 @@ if __name__ == '__main__':
         pid = re.search(
               r'PID: ([^,]+),', inventory_output)
         if pid is not None:
-            platform_metadata['models'].append(pid.group(1).strip())
+            platform_metadata['product-ids'].append(pid.group(1).strip())
     elif args.device_type=='cisco_nxos':
         os = 'nx'
         platform_metadata['os-type'] = 'NX-OS'
@@ -337,7 +337,7 @@ if __name__ == '__main__':
         pid = re.search(
               r'PID: ([^,]+),', inventory_output)
         if pid is not None:
-            platform_metadata['models'].append(pid.group(1).strip())
+            platform_metadata['product-ids'].append(pid.group(1).strip())
 
     args.git_path = '%s/%s/%s' % (args.git_path, os, ver)
 
@@ -392,8 +392,8 @@ if __name__ == '__main__':
         for platform in md['platforms']:
             if platform['vendor']=='cisco' and platform['name']==platform_metadata['name']:
                 found_platform = True
-                if platform_metadata['models'][0] not in platform['models']:
-                    platform['models'].append(platform_metadata['models'][0])
+                if platform_metadata['product-ids'][0] not in platform['product-ids']:
+                    platform['product-ids'].append(platform_metadata['product-ids'][0])
                 break
 
         if not found_platform:
