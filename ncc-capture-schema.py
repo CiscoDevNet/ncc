@@ -249,7 +249,7 @@ if __name__ == '__main__':
           'os-type': '',
           'software-flavor': '',
           'software-version': '',
-          'capabilities-file': {}
+          'module-list-file': {}
     }
 
     #
@@ -350,11 +350,11 @@ if __name__ == '__main__':
     caps_name = platform_metdata['name'].lower() + '-capabilities.xml'
     caps_file = targetdir + '/' + caps_name
     # TODO This should be revisited when ietf-yang-library support is added.
-    platform_metadata['capabilities-file']['type'] = 'capabilities'
+    platform_metadata['module-list-file']['type'] = 'capabilities'
 
-    platform_metadata['capabilities-file']['path'] = args.git_path + '/' + caps_name
-    platform_metadata['capabilities-file']['owner'] = repo.get_owner()
-    platform_metadata['capabilities-file']['repository'] = repo.get_repo_dir()
+    platform_metadata['module-list-file']['path'] = args.git_path + '/' + caps_name
+    platform_metadata['module-list-file']['owner'] = repo.get_owner()
+    platform_metadata['module-list-file']['repository'] = repo.get_repo_dir()
     if not exists(targetdir):
         makedirs(targetdir)
 
