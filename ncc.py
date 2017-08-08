@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import print_function
 import sys
 import os
 from argparse import ArgumentParser
@@ -137,15 +138,15 @@ def list_templates(header, source_env):
         with open(tfile, 'r') as f:
             vars = meta.find_undeclared_variables(env.parse(f.read()))
             f.close()
-            print("  {}".format(tname.replace('.tmpl', ''))),
+            print("  {}".format(tname.replace('.tmpl', '')),end=" ")
             if vars:
-                print ":{",
+                print (":{",end=" ")
                 #for v in sorted(vars):
                 #    print('"%s" : ""' % v),
-                print ','.join(['"%s" : ""' %v for v in sorted(vars)]) ,
-                print "}"
+                print (','.join(['"%s" : ""' %v for v in sorted(vars)])) ,
+                print ("}")
             else:
-                print
+                print()
 
 
 def do_templates(m, t_list, default_op='merge', **kwargs):
@@ -157,7 +158,7 @@ def do_templates(m, t_list, default_op='merge', **kwargs):
         try:
             data = tmpl.render(kwargs)
         except UndefinedError as e:
-            print "Undefined variable %s.  Use --params to specify json dict" % e.message
+            print ("Undefined variable %s.  Use --params to specify json dict" % e.message)
             # assuming we should fail if a single template fails?
             exit(1)
 
@@ -329,7 +330,7 @@ if __name__ == '__main__':
             args.filter = named_filters.get_template(
                 '%s.tmpl' % args.named_filter).render(**kwargs)
         except UndefinedError as e:
-            print "Undefined variable %s.  Use --params to specify json dict" % e.message
+            print ("Undefined variable %s.  Use --params to specify json dict" % e.message)
             exit(1)
 
     #
