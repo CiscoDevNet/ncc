@@ -381,15 +381,23 @@ if __name__ == '__main__':
     # Attempt to get the ietf-yang-library if available.
     # If not, fall back to capabilities.
     #
+    do_caps = False
     try:
         response = mgr.get(('xpath', '/modules-state')).xml
         lib_data = etree.fromstring(response)
+        lib_tags = lib_data.findall('.//{urn:ietf:params:xml:ns:yang:ietf-yang-library}modules-state')
+        if len(lib_tags) == 0:
+            raise Exception('No support for ietf-yang-library')
+
         with open(caps_file, 'w') as capsfile:
-            for lib_tag in lib_data.findall('.//{urn:ietf:params:xml:ns:yang:ietf-yang-library}modules-state'):
+            for lib_tag in lib_tags:
                 capsfile.write(etree.tostring(lib_tag, pretty_print=True))
             capsfile.close()
         platform_metadata['module-list-file']['type'] = 'yang-library'
-    except RPCError as rpce:
+    except (RPCError, Exception) as rpce:
+        do_caps = True
+
+    if do_caps:
         #
         # Save out capabilities
         #
@@ -399,7 +407,6 @@ if __name__ == '__main__':
                 capsfile.write('  <capability>{}</capability>\n'.format(c))
             capsfile.write(''' </capabilities>\n</hello>\n''')
             capsfile.close()
-
     #
     # Save out metadata (append if it exists)
     #
