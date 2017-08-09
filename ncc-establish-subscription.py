@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import sys
+import signal
 from argparse import ArgumentParser
 from ncclient import manager
 from lxml import etree
@@ -38,7 +39,9 @@ if __name__ == '__main__':
                         help="Specify this if you want a non-default port")
     parser.add_argument('-v', '--verbose', action='store_true',
                         help="Do I really need to explain?")
-    
+    parser.add_argument('--delete-after', type=int,
+                        help="Delete the established subscription after N seconds")
+
     g = parser.add_mutually_exclusive_group(required=True)
     g.add_argument('--period', type=int,
                    help="Period in centiseconds for periodic subscription")
@@ -68,6 +71,14 @@ if __name__ == '__main__':
                          look_for_keys=False,
                          hostkey_verify=False,
                          unknown_host_cb=unknown_host_cb)
+
+    #
+    # set up a ctrl+c handler to tear down the netconf session
+    #
+    def sigint_handler(signal, frame):
+        m.close_session()
+        sys.exit(0)
+    signal.signal(signal.SIGINT, sigint_handler)
 
     #
     # a pair of really simple callbacks...
@@ -129,5 +140,10 @@ if __name__ == '__main__':
     print('Subscription Id     : %d' % s.subscription_id)
 
     # simple forever loop
-    while True:
-        time.sleep(5)
+    if args.delete_after:
+        time.sleep(args.delete_after)
+        r = m.delete_subscription(s.subscription_id)
+        print('delete subscription result = %s' % r.subscription_result)
+    else:
+        while True:
+            time.sleep(5)
