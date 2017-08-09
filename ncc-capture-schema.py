@@ -349,7 +349,6 @@ if __name__ == '__main__':
     targetdir = repo.localdir + '/' + args.git_path
     caps_name = platform_metdata['name'].lower() + '-capabilities.xml'
     caps_file = targetdir + '/' + caps_name
-    # TODO This should be revisited when ietf-yang-library support is added.
     platform_metadata['module-list-file']['type'] = 'capabilities'
 
     platform_metadata['module-list-file']['path'] = args.git_path + '/' + caps_name
@@ -379,6 +378,29 @@ if __name__ == '__main__':
                            unknown_host_cb=unknown_host_cb)
 
     #
+    # Attempt to get the ietf-yang-library if available.
+    # If not, fall back to capabilities.
+    #
+    try:
+        response = mgr.get(('xpath', '/modules-state')).xml
+        lib_data = etree.fromstring(response)
+        with open(caps_file, 'w') as capsfile:
+            for lib_tag in lib_data.findall('.//{urn:ietf:params:xml:ns:yang:ietf-yang-library}modules-state'):
+                capsfile.write(etree.tostring(lib_tag, pretty_print=True))
+            capsfile.close()
+        platform_metadata['module-list-file']['type'] = 'yang-library'
+    except RPCError as rpce:
+        #
+        # Save out capabilities
+        #
+        with open(caps_file, 'w') as capsfile:
+            capsfile.write('''<hello xmlns="urn:ietf:params:xml:ns:netconf:base:1.0">\n <capabilities>\n''')
+            for c in mgr.server_capabilities:
+                capsfile.write('  <capability>{}</capability>\n'.format(c))
+            capsfile.write(''' </capabilities>\n</hello>\n''')
+            capsfile.close()
+
+    #
     # Save out metadata (append if it exists)
     #
     md_file = targetdir + '/' + 'platform-metadata.json'
@@ -404,16 +426,6 @@ if __name__ == '__main__':
     mdfile = open(md_file, 'w')
     json.dump(md, mdfile, indent=4)
     mdfile.close()
-
-    #
-    # Save out capabilities
-    #
-    with open(caps_file, 'w') as capsfile:
-        capsfile.write('''<hello xmlns="urn:ietf:params:xml:ns:netconf:base:1.0">\n <capabilities>\n''')
-        for c in mgr.server_capabilities:
-            capsfile.write('  <capability>{}</capability>\n'.format(c))
-        capsfile.write(''' </capabilities>\n</hello>\n''')
-        capsfile.close()
 
     #
     # Open up a report file
