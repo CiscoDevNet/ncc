@@ -187,7 +187,7 @@ def get_running_config(m, filter=None, xpath=None):
         c = m.get_config(source='running', filter=('xpath', xpath))
     else:
         c = m.get_config(source='running')
-    print(etree.tostring(c.data, pretty_print=True))
+    print(etree.tostring(c.data, pretty_print=True).decode('UTF-8'))
         
         
 def get(m, filter=None, xpath=None):
@@ -201,7 +201,8 @@ def get(m, filter=None, xpath=None):
     else:
         print("Need a filter for oper get!")
         return
-    print(etree.tostring(c.data, pretty_print=True))
+    # Python3 will see this as a byte string
+    print(etree.tostring(c.data, pretty_print=True).decode('UTF-8'))
         
         
 if __name__ == '__main__':
