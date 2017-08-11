@@ -1,16 +1,16 @@
 <config>
-<native xmlns="http://cisco.com/ns/yang/ned/ios">
-      <interface>
-        <GigabitEthernet>
-          <name>{{INTF_NAME}}</name>
-          <switchport>
-            <access>
-              <vlan>
-                <vlan>{{VLAN}}</vlan>
-              </vlan>
-            </access>
-          </switchport>
-        </GigabitEthernet>
-      </interface>
-    </native>
+<native xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-native">
+    <interface>
+      <GigabitEthernet>
+        <name xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0">{{INTF_NAME}}</name>
+        <switchport>
+          <access xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-switch">
+            <vlan>
+              <vlan>{{VLAN}}</vlan>
+            </vlan>
+          </access>
+        </switchport>
+      </GigabitEthernet>
+    </interface>
+  </native>
 </config>
