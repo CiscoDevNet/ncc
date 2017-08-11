@@ -353,7 +353,7 @@ if __name__ == '__main__':
     repo = repoutil.RepoUtil(args.git_repo)
     repo.clone()
     targetdir = repo.localdir + '/' + args.git_path
-    caps_name = platform_metadata['name'].lower() + '-capabilities.xml'
+    caps_name = platform_metadata['name'].lower().replace('/', '_').replace(':', '_').replace('\\', '_') + '-capabilities.xml'
     caps_file = targetdir + '/' + caps_name
     platform_metadata['module-list-file']['type'] = 'capabilities'
 
