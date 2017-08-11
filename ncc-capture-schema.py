@@ -269,7 +269,7 @@ if __name__ == '__main__':
         platform_metadata['software-flavor'] = 'ALL'
         inventory_output = d.send_command('show inventory all | begin Chassis')
         v = re.search(
-            r'Version +: +([0-9\.A-Z]+)\n',
+            r'Version +:? *([0-9\.A-Z]+)',
             version_output)
         if v is not None:
             ver = v.group(1)
