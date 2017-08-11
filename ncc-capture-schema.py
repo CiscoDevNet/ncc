@@ -280,6 +280,8 @@ if __name__ == '__main__':
              version_output, re.M)
         if pn is not None:
             platform_metadata['name'] = pn.group(1).replace('Series', '').strip().replace(' ', '-')
+        else:
+            platform_metadata['name'] = 'ios-xr'
 
         pid = re.search(
               r'PID: ([^,]+),', inventory_output)
@@ -292,7 +294,7 @@ if __name__ == '__main__':
                   inventory_output, re.M)
             if pid is not None:
                 platform_metadata['product-ids'].append(pid.group(1))
-    elif args.device_type=='cisco_ios':
+    elif args.device_type=='cisco_ios' or args.device_type=='cisco_xe':
         os = 'xe'
         platform_metadata['os-type'] = 'IOS-XE'
         # TODO: Do we want to track licenses for XE here?
@@ -308,10 +310,12 @@ if __name__ == '__main__':
         # This pattern seems complex, but it allows us to get the "C3850" part out
         # of "WS-C3850-48P" as an example.
         pn = re.search(
-             r'^cisco (WS-)?([a-zA-Z0-9\-/]+)(-[0-9][0-9A-Z]+)? \([^)]+) processor',
+             r'^cisco (WS-)?([a-zA-Z0-9\-/]+?)(-[0-9][0-9A-Z]+)? \([^\)]+\) processor',
              version_output, re.M)
         if pn is not None:
             platform_metadata['name'] = pn.group(2)
+        else:
+            platform_metadata['name'] = 'ios-xe'
 
         pid = re.search(
               r'PID: ([^,]+),', inventory_output)
@@ -333,6 +337,8 @@ if __name__ == '__main__':
              version_output, re.M)
         if pn is not None:
             platform_metadata['name'] = pn.group(1)
+        else:
+            platform_metadata['name'] = 'nx-os'
 
         pid = re.search(
               r'PID: ([^,]+),', inventory_output)
@@ -347,7 +353,7 @@ if __name__ == '__main__':
     repo = repoutil.RepoUtil(args.git_repo)
     repo.clone()
     targetdir = repo.localdir + '/' + args.git_path
-    caps_name = platform_metdata['name'].lower() + '-capabilities.xml'
+    caps_name = platform_metadata['name'].lower() + '-capabilities.xml'
     caps_file = targetdir + '/' + caps_name
     platform_metadata['module-list-file']['type'] = 'capabilities'
 
