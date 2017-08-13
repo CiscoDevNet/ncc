@@ -1,0 +1,30 @@
+<config>
+  <native xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-native">
+    <policy>
+      <policy-map xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-policy">
+        <name>{{P_NAME}}</name>
+        <class>
+          <name>{{C_NAME}}</name>
+          <action-list>
+            <action-type>police</action-type>
+            <police-rate-percent>
+              <police>
+                <rate>
+                  <percent>
+                    <percentage>10</percentage>
+                  </percent>
+                </rate>
+              </police>
+            </police-rate-percent>
+          </action-list>
+          <action-list>
+            <action-type>priority</action-type>
+            <priority>
+              <level>1</level>
+            </priority>
+          </action-list>
+        </class>
+        </policy-map>
+     </policy>
+  </native>
+</config>
