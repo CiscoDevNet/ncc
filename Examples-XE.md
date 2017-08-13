@@ -3,7 +3,15 @@
 ## Environment vars
 This will same specifying username and password.  It also will point to the XE snippets directory.
 
+```buildoutcfg
 source local_vars
+```
+This file contains the following shell environment variables
+```buildoutcfg
+export NCC_USERNAME=myuser
+export NCC_PASSWORD=my-password
+export NCC_SNIPPETS=./ncc/snippets-xe
+```
 
 ## Basic Requests
 These will get the capabilities.
