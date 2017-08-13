@@ -1,4 +1,4 @@
-# A bunch of examples for useing the XE filters and editconfigs
+# A bunch of examples for Using the XE filters and editconfigs
 
 ## Environment vars
 This will same specifying username and password.  It also will point to the XE snippets directory.
