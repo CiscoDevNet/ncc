@@ -57,14 +57,12 @@ A couple of requests for oper-data
 ## ACL
 
 ```buildoutcfg
-./ncc.py --host=adam-csr --get-oper -x '/native/ip/access-list/extended[name="canary_ip_in"]'
-./ncc.py --host=adam-csr --get-oper -x '/native/ip/object-group'
 ./ncc/ncc.py --host=adam-3850 --do-edits native-create-acl --params '{"ACL_NAME": "canary_ip_in"}'
 ./ncc/ncc.py --host=adam-3850 --get-oper -x "/native/ip/access-list/extended[name='canary_ip_in']"
 ./ncc/ncc.py --host=adam-3850 --do-edits native-delete-acl --params '{"ACL_NAME": "canary_ip_in"}'
 ./ncc/ncc.py --host=adam-3850 --do-edits native-intf-add-acl --params '{"INTF_NAME" : "1/0/18","ACL": "canary_ip_in"}'
 ./ncc/ncc.py --host=adam-3850 --do-edits native-intf-delete-acl --params '{"INTF_NAME" : "1/0/18","ACL": "canary_ip_in"}'
-
+./ncc.py --host=adam-csr --get-oper -x '/native/ip/object-group'
 ```
 
 ## IP address / vlan change
