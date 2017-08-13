@@ -188,8 +188,7 @@ def get_running_config(m, filter=None, xpath=None):
     else:
         c = m.get_config(source='running')
     print(etree.tostring(c.data, pretty_print=True).decode('UTF-8'))
-        
-        
+
 def get(m, filter=None, xpath=None):
     """Get state with a passed in filter. If both types of filter are
     passed in for some reason, the subtree filter "wins".
@@ -203,8 +202,7 @@ def get(m, filter=None, xpath=None):
         return
     # Python3 will see this as a byte string
     print(etree.tostring(c.data, pretty_print=True).decode('UTF-8'))
-        
-        
+
 if __name__ == '__main__':
 
     parser = ArgumentParser(description='Select your NETCONF operation and parameters:')
@@ -226,6 +224,8 @@ if __name__ == '__main__':
                         help="Exceedingly verbose logging to the console")
     parser.add_argument('--default-op', type=str, default='merge',
                         help="The NETCONF default operation to use (default 'merge')")
+    parser.add_argument('--device-type', type=str, default=None,
+                         help='The device type to pass to ncclient (default: None)')
 
     parser.add_argument('-w', '--where', action='store_true',
                         help="Print where script is and exit")
@@ -342,6 +342,11 @@ if __name__ == '__main__':
     #
     def unknown_host_cb(host, fingerprint):
         return True
+
+    device_params = {}
+    if args.device_type is not None:
+        device_params = {'name': args.device_type}
+
     m =  manager.connect(host=args.host,
                          port=args.port,
                          timeout=args.timeout,
@@ -350,6 +355,7 @@ if __name__ == '__main__':
                          allow_agent=False,
                          look_for_keys=False,
                          hostkey_verify=False,
+                         device_params=device_params,
                          unknown_host_cb=unknown_host_cb)
 
     #

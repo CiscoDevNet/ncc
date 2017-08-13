@@ -8,17 +8,6 @@ import time
 import datetime
 from ncclient.transport.session import SessionListener
 
-
-def get(m, filter=None, xpath=None):
-    if filter and len(filter) > 0:
-        return m.get(filter=('subtree', filter))
-    elif xpath and len(xpath)>0:
-        return m.get(filter=('xpath', xpath))
-    else:
-        print ("Need a filter for oper get!")
-        return None
-
-
 if __name__ == '__main__':
 
     parser = ArgumentParser(description='Select your simple poller parameters:')
@@ -70,4 +59,5 @@ if __name__ == '__main__':
         print('Tick, tock...')
         n = m.take_notification(timeout=5)
         if n:
-            print(n)
+            print(etree.tostring(n.notification_ele, pretty_print=True))
+
