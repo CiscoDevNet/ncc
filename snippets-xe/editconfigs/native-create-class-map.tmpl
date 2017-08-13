@@ -1,0 +1,13 @@
+<config>
+  <native xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-native">
+    <policy>
+      <class-map xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-policy">
+        <name>{{C_NAME}}</name>
+        <prematch>match-any</prematch>
+        <match>
+          <dscp>cs5</dscp>
+        </match>
+      </class-map>
+    </policy>
+  </native>
+</config>

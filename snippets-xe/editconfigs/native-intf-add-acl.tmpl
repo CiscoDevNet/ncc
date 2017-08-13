@@ -1,0 +1,20 @@
+<config>
+   <native xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-native">
+    <interface>
+      <GigabitEthernet>
+        <name>{{INTF_NAME}}</name>
+
+        <ip>
+          <access-group>
+            <in>
+              <acl>
+                <acl-name>{{ACL}}</acl-name>
+                <in/>
+              </acl>
+            </in>
+          </access-group>
+        </ip>
+        </GigabitEthernet>
+       </interface>
+    </native>
+</config>

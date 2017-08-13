@@ -210,13 +210,13 @@ if __name__ == '__main__':
     #
     # NETCONF session parameters
     #
-    parser.add_argument('--host', type=str, default='127.0.0.1',
+    parser.add_argument('--host', type=str, default=os.environ.get('NCC_HOST','127.0.0.1'),
                         help="The IP address for the device to connect to (default localhost)")
     parser.add_argument('-u', '--username', type=str, default=os.environ.get('NCC_USERNAME', 'cisco'),
                         help="Username to use for SSH authentication (default 'cisco')")
     parser.add_argument('-p', '--password', type=str, default=os.environ.get('NCC_PASSWORD', 'cisco'),
                         help="Password to use for SSH authentication (default 'cisco')")
-    parser.add_argument('--port', type=int, default=830,
+    parser.add_argument('--port', type=int, default=os.environ.get('NCC_PORT',830),
                         help="Specify this if you want a non-default port (default 830)")
     parser.add_argument('--timeout', type=int, default=60,
                         help="NETCONF operation timeout in seconds (default 60)")
