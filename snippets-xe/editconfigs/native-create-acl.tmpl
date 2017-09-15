@@ -1,0 +1,20 @@
+<config>
+<native xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-native">
+    <ip>
+      <access-list>
+        <extended xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-acl">
+          <name>{{ACL_NAME}}</name>
+          <access-list-seq-rule>
+            <sequence>11</sequence>
+            <ace-rule>
+              <action>permit</action>
+              <protocol>ip</protocol>
+              <any/>
+              <dst-host>2.2.2.2</dst-host>
+            </ace-rule>
+          </access-list-seq-rule>
+        </extended>
+      </access-list>
+    </ip>
+  </native>
+</config>

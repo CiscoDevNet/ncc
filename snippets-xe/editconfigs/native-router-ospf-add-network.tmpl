@@ -1,0 +1,16 @@
+<config>
+<native xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-native">
+    <router>
+      <ospf xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-ospf">
+        <id>{{ROUTER_ID}}</id>
+        <network>
+          <ip>{{NETWORK}}</ip>
+          <mask>{{MASK}}</mask>
+          <area>0</area>
+        </network>
+
+      </ospf>
+    </router>
+  </native>
+
+</config>

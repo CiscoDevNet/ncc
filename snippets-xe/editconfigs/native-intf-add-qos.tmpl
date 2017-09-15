@@ -1,0 +1,13 @@
+<config>
+  <native xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-native">
+    <interface>
+        <GigabitEthernet>
+            <name>{{INTF_NAME}}</name>
+                <service-policy xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-policy">
+
+                    <output>{{P_NAME}}</output>
+            </service-policy>
+        </GigabitEthernet>
+     </interface>
+   </native>
+</config>
