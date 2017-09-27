@@ -358,7 +358,7 @@ if __name__ == '__main__':
     platform_metadata['module-list-file']['type'] = 'capabilities'
 
     platform_metadata['module-list-file']['path'] = args.git_path + '/' + caps_name
-    platform_metadata['module-list-file']['owner'] = repo.get_owner()
+    platform_metadata['module-list-file']['owner'] = repo.get_repo_owner()
     platform_metadata['module-list-file']['repository'] = repo.get_repo_dir()
     if not exists(targetdir):
         makedirs(targetdir)
