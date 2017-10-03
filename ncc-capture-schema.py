@@ -358,7 +358,7 @@ if __name__ == '__main__':
     platform_metadata['module-list-file']['type'] = 'capabilities'
 
     platform_metadata['module-list-file']['path'] = args.git_path + '/' + caps_name
-    platform_metadata['module-list-file']['owner'] = repo.get_owner()
+    platform_metadata['module-list-file']['owner'] = repo.get_repo_owner()
     platform_metadata['module-list-file']['repository'] = repo.get_repo_dir()
     if not exists(targetdir):
         makedirs(targetdir)
@@ -417,14 +417,15 @@ if __name__ == '__main__':
     # Save out metadata (append if it exists)
     #
     md_file = targetdir + '/' + 'platform-metadata.json'
-    md = { 'platforms': [] }
+    md = {}
+    md['platforms'] = { 'platform': [] }
     if isfile(md_file) and getsize(md_file) > 0:
         mdfile = open(md_file, 'r')
         md = json.load(mdfile)
         mdfile.close()
 
         found_platform = False
-        for platform in md['platforms']:
+        for platform in md['platforms']['platform']:
             if platform['vendor']=='cisco' and platform['name']==platform_metadata['name']:
                 found_platform = True
                 if platform_metadata['product-ids'][0] not in platform['product-ids']:
@@ -432,9 +433,9 @@ if __name__ == '__main__':
                 break
 
         if not found_platform:
-            md['platforms'].append(platform_metadata)
+            md['platforms']['platform'].append(platform_metadata)
     else:
-        md['platforms'].append(platform_metadata)
+        md['platforms']['platform'].append(platform_metadata)
 
     mdfile = open(md_file, 'w')
     json.dump(md, mdfile, indent=4)
