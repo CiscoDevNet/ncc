@@ -77,7 +77,7 @@ class RepoUtil(object):
         if len(modified)>0:
             self.repo.index.add(modified)
         if len(deleted)>0:
-            self.repo.index.remove(modified)
+            self.repo.index.remove(deleted)
 
     def commit_all(self, message='RepoUtil Commit'):
         '''Equivalent of git commit -a -m MESSAGE.'''
