@@ -13,6 +13,8 @@ from ncclient.transport.session import SessionListener
 # some useful constants
 #
 CISCO_CDP_OPER_NS = 'http://cisco.com/ns/yang/Cisco-IOS-XE-cdp-oper'
+CISCO_PROCESS_CPU_OPER = 'http://cisco.com/ns/yang/Cisco-IOS-XE-process-cpu-oper'
+
 
 def get(m, filter=None, xpath=None):
     if filter and len(filter) > 0:
@@ -133,7 +135,7 @@ if __name__ == '__main__':
     s = m.establish_subscription(
         callback_mgmt_addresses,
         errback,
-        xpath='/cdp-ios-xe-oper:cdp-neighbour-details/cdp-neighbour-detail',
+        xpath='/cdp-ios-xe-oper:cdp-neighbor-details/cdp-neighbor-detail',
         period=args.period,
         dampening_period=args.dampening_period)
     print('Subscription Result : %s' % s.subscription_result)
