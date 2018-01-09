@@ -132,19 +132,46 @@ if __name__ == '__main__':
     # period because the mutually exclusive group used in argument
     # parsing protexts us.
     #
-    s = m.establish_subscription(
-        callback_mgmt_addresses,
+    # s = m.establish_subscription(
+    #     callback_mgmt_addresses,
+    #     errback,
+    #     xpath='/cdp-ios-xe-oper:cdp-neighbor-details/cdp-neighbor-detail',
+    #     period=args.period,
+    #     dampening_period=args.dampening_period)
+    s1 = m.establish_subscription(
+        callback,
         errback,
-        xpath='/cdp-ios-xe-oper:cdp-neighbor-details/cdp-neighbor-detail',
+        # xpath='/process-cpu-ios-xe-oper:cpu-usage/cpu-utilization/five-seconds',
+        # xpath='/memory-statistics/memory-statistic',
+        xpath='/memory-statistics/memory-statistic[name="Processor"]',
+        # xpath='/memory-statistics',
+        # xpath='/memory-usage-processes',
         period=args.period,
         dampening_period=args.dampening_period)
-    print('Subscription Result : %s' % s.subscription_result)
-    print('Subscription Id     : %d' % s.subscription_id)
+
+    print('Subscription Result : %s' % s1.subscription_result)
+    print('Subscription Id     : %d' % s1.subscription_id)
+
+    s2 = m.establish_subscription(
+        callback,
+        errback,
+        # xpath='/process-cpu-ios-xe-oper:cpu-usage/cpu-utilization/five-seconds',
+        # xpath='/memory-statistics/memory-statistic',
+        xpath='/memory-statistics/memory-statistic[name="lsmpi_io"]',
+        # xpath='/memory-statistics',
+        # xpath='/memory-usage-processes',
+        period=args.period,
+        dampening_period=args.dampening_period)
+
+    print('Subscription Result : %s' % s2.subscription_result)
+    print('Subscription Id     : %d' % s2.subscription_id)
 
     # simple forever loop
     if args.delete_after:
         time.sleep(args.delete_after)
-        r = m.delete_subscription(s.subscription_id)
+        r = m.delete_subscription(s1.subscription_id)
+        print('delete subscription result = %s' % r.subscription_result)
+        r = m.delete_subscription(s2.subscription_id)
         print('delete subscription result = %s' % r.subscription_result)
     else:
         while True:
