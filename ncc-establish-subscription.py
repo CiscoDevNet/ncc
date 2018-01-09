@@ -150,7 +150,8 @@ if __name__ == '__main__':
         dampening_period=args.dampening_period)
 
     print('Subscription Result : %s' % s1.subscription_result)
-    print('Subscription Id     : %d' % s1.subscription_id)
+    if s1.subscription_result.endswith('ok'):
+        print('Subscription Id     : %d' % s1.subscription_id)
 
     s2 = m.establish_subscription(
         callback,
@@ -164,7 +165,8 @@ if __name__ == '__main__':
         dampening_period=args.dampening_period)
 
     print('Subscription Result : %s' % s2.subscription_result)
-    print('Subscription Id     : %d' % s2.subscription_id)
+    if s2.subscription_result.endswith('ok'):
+        print('Subscription Id     : %d' % s2.subscription_id)
 
     # simple forever loop
     if args.delete_after:
