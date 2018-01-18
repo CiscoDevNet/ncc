@@ -43,6 +43,8 @@ if __name__ == '__main__':
                         help="Do I really need to explain?")
     parser.add_argument('--delete-after', type=int,
                         help="Delete the established subscription after N seconds")
+    parser.add_argument('--xpaths', type=str, nargs='+',
+                        help="List of xpaths to subscribe to, one or more")
 
     g = parser.add_mutually_exclusive_group(required=True)
     g.add_argument('--period', type=int,
@@ -94,87 +96,33 @@ if __name__ == '__main__':
         print(etree.tostring(notif.datastore_ele, pretty_print=True))
         print('<<--')
 
-    def callback_device_names(notif):
-        print('-->>')
-        device_names = [
-            b.text
-            for b in notif.datastore_ele.iterfind(
-                    ".//{%s}device-name" % CISCO_CDP_OPER_NS)
-        ]
-        print('Event time      : %s' % notif.event_time)
-        print('Subscription Id : %d' % notif.subscription_id)
-        print('Type            : %d' % notif.type)
-        print('Device Names    :')
-        for d in device_names:
-            print('    %s' % d)
-        print('<<--')
-
-    def callback_mgmt_addresses(notif):
-        print('-->>')
-        mgmt_addresses = [
-            b.text
-            for b in notif.datastore_ele.iterfind(
-                    ".//{%s}mgmt-address" % CISCO_CDP_OPER_NS)
-        ]
-        print('Event time      : %s' % notif.event_time)
-        print('Subscription Id : %d' % notif.subscription_id)
-        print('Type            : %d' % notif.type)
-        print('Mgmt Addresses  :')
-        for m in mgmt_addresses:
-            print('    %s' % m)
-        print('<<--')
-
     def errback(notif):
         pass
     
     #
-    # Create the subscription. We can pass both period and dampening
-    # period because the mutually exclusive group used in argument
-    # parsing protexts us.
+    # iterate over the list of xpaths and create subscriptions
     #
-    # s = m.establish_subscription(
-    #     callback_mgmt_addresses,
-    #     errback,
-    #     xpath='/cdp-ios-xe-oper:cdp-neighbor-details/cdp-neighbor-detail',
-    #     period=args.period,
-    #     dampening_period=args.dampening_period)
-    s1 = m.establish_subscription(
-        callback,
-        errback,
-        # xpath='/process-cpu-ios-xe-oper:cpu-usage/cpu-utilization/five-seconds',
-        # xpath='/memory-statistics/memory-statistic',
-        xpath='/memory-statistics/memory-statistic[name="Processor"]',
-        # xpath='/memory-statistics',
-        # xpath='/memory-usage-processes',
-        period=args.period,
-        dampening_period=args.dampening_period)
+    subs = []
+    for xpath in args.xpaths:
+        s = m.establish_subscription(
+            callback,
+            errback,
+            xpath=xpath,
+            period=args.period,
+            dampening_period=args.dampening_period)
+        print('Subscription Result : %s' % s.subscription_result)
+        if s.subscription_result.endswith('ok'):
+            print('Subscription Id     : %d' % s.subscription_id)
+            subs.append(s.subscription_id)
 
-    print('Subscription Result : %s' % s1.subscription_result)
-    if s1.subscription_result.endswith('ok'):
-        print('Subscription Id     : %d' % s1.subscription_id)
-
-    s2 = m.establish_subscription(
-        callback,
-        errback,
-        # xpath='/process-cpu-ios-xe-oper:cpu-usage/cpu-utilization/five-seconds',
-        # xpath='/memory-statistics/memory-statistic',
-        xpath='/memory-statistics/memory-statistic[name="lsmpi_io"]',
-        # xpath='/memory-statistics',
-        # xpath='/memory-usage-processes',
-        period=args.period,
-        dampening_period=args.dampening_period)
-
-    print('Subscription Result : %s' % s2.subscription_result)
-    if s2.subscription_result.endswith('ok'):
-        print('Subscription Id     : %d' % s2.subscription_id)
-
+    #
     # simple forever loop
+    #
     if args.delete_after:
         time.sleep(args.delete_after)
-        r = m.delete_subscription(s1.subscription_id)
-        print('delete subscription result = %s' % r.subscription_result)
-        r = m.delete_subscription(s2.subscription_id)
-        print('delete subscription result = %s' % r.subscription_result)
+        for s in subs:
+            r = m.delete_subscription(s)
+            print('delete subscription result = %s' % r.subscription_result)
     else:
         while True:
             time.sleep(5)
