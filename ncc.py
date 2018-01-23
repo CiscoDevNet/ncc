@@ -4,6 +4,7 @@ import sys
 import os
 from argparse import ArgumentParser
 from ncclient import manager
+from ncclient.xml_ import *
 from jinja2 import Environment
 from jinja2.exceptions import UndefinedError
 from jinja2 import meta
@@ -182,11 +183,20 @@ def get_running_config(m, filter=None, xpath=None):
     """
     import time
     if filter and len(filter) > 0:
+        
         c = m.get_config(source='running', filter=('subtree', filter))
+        
     elif xpath and len(xpath)>0:
+        
         c = m.get_config(source='running', filter=('xpath', xpath))
+        
+        # test for xpath filter with namespaces
+        # c = m.get_config(source='running', filter='<nc:filter type="xpath" xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0" xmlns:if="urn:ietf:params:xml:ns:yang:ietf-interfaces" select="%s"/>' % xpath)
+        
     else:
+        
         c = m.get_config(source='running')
+
     print(etree.tostring(c.data, pretty_print=True).decode('UTF-8'))
 
 def get(m, filter=None, xpath=None):
@@ -250,8 +260,8 @@ if __name__ == '__main__':
     g = parser.add_mutually_exclusive_group()
     g.add_argument('-f', '--filter', type=str,
                    help="NETCONF subtree filter")
-    g.add_argument('--named-filter', type=str,
-                   help="Named NETCONF subtree filter")
+    g.add_argument('--named-filter', nargs='+',
+                   help="List of named NETCONF subtree filters")
     g.add_argument('-x', '--xpath', type=str,
                    help="NETCONF XPath filter")
 
@@ -326,10 +336,12 @@ if __name__ == '__main__':
     #
     # This populates the filter if it's a canned filter.
     #
-    if args.named_filter:
+    if args.named_filter is not None:
         try:
-            args.filter = named_filters.get_template(
-                '%s.tmpl' % args.named_filter).render(**kwargs)
+            args.filter = []
+            for f in args.named_filter:
+                args.filter.append(named_filters.get_template(
+                    '%s.tmpl' % f).render(**kwargs))
         except UndefinedError as e:
             print ("Undefined variable %s.  Use --params to specify json dict" % e.message)
             exit(1)
@@ -372,7 +384,11 @@ if __name__ == '__main__':
         get_running_config(m, xpath=args.xpath, filter=args.filter)
 
     elif args.get_oper:
-        get(m, filter=args.filter, xpath=args.xpath)
+        if isinstance(args.filter, list):
+            for f in args.filter:
+                get(m, filter=f, xpath=None)
+        else:
+            get(m, filter=args.filter, xpath=args.xpath)
     elif args.do_edits:
         do_templates( m,
                       [named_templates.get_template('%s.tmpl' % t) for t in args.do_edits],
