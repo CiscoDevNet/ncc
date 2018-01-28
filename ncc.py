@@ -4,6 +4,7 @@ import sys
 import os
 from argparse import ArgumentParser
 from ncclient import manager
+from ncclient.operations.rpc import RPCError
 from ncclient.xml_ import *
 from jinja2 import Environment
 from jinja2.exceptions import UndefinedError
@@ -44,6 +45,13 @@ CANDIDATE = False
 # templates and filters unless overriden.
 #
 NCC_DIR, _ = os.path.split(os.path.realpath(__file__))
+
+
+def strip_leading_trailing_ws(to_strip):
+    s1 = re.sub(r"^\s*" , "" , to_strip)
+    s2 = re.sub(r"\s*$" , "" , s1)
+    return s2
+
 
 def display_capabilities(m):
     """Display the capabilities in a useful, categorized way.
@@ -390,10 +398,21 @@ if __name__ == '__main__':
         else:
             get(m, filter=args.filter, xpath=args.xpath)
     elif args.do_edits:
-        do_templates( m,
-                      [named_templates.get_template('%s.tmpl' % t) for t in args.do_edits],
-                      default_op=args.default_op,
-                      **kwargs)
+        try:
+            do_templates(
+                m,
+                [named_templates.get_template('%s.tmpl' % t) for t in args.do_edits],
+                default_op=args.default_op,
+                **kwargs)
+        except RPCError as e:
+            print("RPC Error")
+            print("---------")
+            print("severity: %s" % e.severity)
+            print("     tag: %s" % e.tag)
+            if e.path and len(e.path)>0:
+                print("    path: %s" % strip_leading_trailing_ws(e.path))
+            print(" message: %s" % e.message)
+            print("    type: %s" % e.type)
     elif args.capabilities:
         display_capabilities(m)
     elif args.is_supported:

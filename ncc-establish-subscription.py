@@ -15,6 +15,11 @@ from ncclient.transport.session import SessionListener
 CISCO_CDP_OPER_NS = 'http://cisco.com/ns/yang/Cisco-IOS-XE-cdp-oper'
 CISCO_PROCESS_CPU_OPER = 'http://cisco.com/ns/yang/Cisco-IOS-XE-process-cpu-oper'
 
+#
+# globals
+#
+events_received = 0
+
 
 def get(m, filter=None, xpath=None):
     if filter and len(filter) > 0:
@@ -89,6 +94,7 @@ if __name__ == '__main__':
     #
     def callback(notif):
         print('-->>')
+        # print('Num Events Rxd  : %d' % events_received)
         print('Event time      : %s' % notif.event_time)
         print('Subscription Id : %d' % notif.subscription_id)
         print('Type            : %d' % notif.type)
