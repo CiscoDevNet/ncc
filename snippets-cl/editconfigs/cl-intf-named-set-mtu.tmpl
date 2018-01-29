@@ -1,0 +1,15 @@
+<config>
+ <native xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-native">
+    <interface>
+      <{{IF_TYPE}}>
+        <name>{{IF_NUM}}</name>
+        <ip>
+          <address>
+            <dhcp/>
+          </address>
+          <mtu>{{IP_MTU}}</mtu>
+        </ip>
+      </GigabitEthernet>
+    </interface>
+  </native>
+</config>

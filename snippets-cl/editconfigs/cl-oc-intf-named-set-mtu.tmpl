@@ -1,0 +1,17 @@
+<config>
+  <interfaces xmlns="http://openconfig.net/yang/interfaces">
+    <interface>
+      <name xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0">{{INTF_NAME}}</name>
+      <subinterfaces>
+        <subinterface>
+          <index>{{IP_SUBIF_IDX}}</index>
+          <ipv4 xmlns="http://openconfig.net/yang/interfaces/ip">
+            <config>
+              <mtu>{{IP_MTU}}</mtu>
+            </config>
+          </ipv4>
+        </subinterface>
+      </subinterfaces>
+    </interface>
+  </interfaces>
+</config>
