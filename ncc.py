@@ -70,11 +70,12 @@ def display_capabilities(m):
         m = re.search(re_model, c)
         if m:
             module_list.append('%s (%s)' % (m.group(2), m.group(1)))
-        else:
-            print('UNMATCHED model: %s' % c)
+        #else:
+        #    print('UNMATCHED model: %s' % c)
 
     # pre-process capabilities, split into various categories
     ns_to_list = [
+        ('urn:ietf:params:xml:ns:yang:smiv2', mib_models),
         ('urn:ietf:params:xml:ns', ietf_models),
         ('http://openconfig.net/yang', openconfig_models),
         ('http://cisco.com/ns/yang', cisco_models,),
@@ -101,7 +102,7 @@ def display_capabilities(m):
                     matched = True
                     break
         if matched==False:
-            print(c)
+            other_models.append(c)
 
     # now print them
     list_to_heading = [
@@ -109,14 +110,14 @@ def display_capabilities(m):
         (ietf_models, 'IETF Models:'),
         (openconfig_models, 'OpenConfig Models:'),
         (cisco_models, 'Cisco Models:'),
-        (cisco_calvados_models, 'Cisco Calvados Models:'),
+        (cisco_calvados_models, 'Cisco XR Admin Plane Models:'),
         (mib_models, 'MIB Models:'),
         (other_models, 'Other Models:'),
     ]
     for (l, h) in list_to_heading:
         if len(l) > 0:
             print(h)
-            for s in l:
+            for s in sorted(l):
                 print('\t%s' % s)
 
 
