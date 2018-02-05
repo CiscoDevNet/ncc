@@ -1,5 +1,22 @@
 # Various Scripts & Jupyter Notebooks
 
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+
+
+- [Introduction](#introduction)
+- [Python Dependencies](#python-dependencies)
+- [Python Scripts](#python-scripts)
+  - [Running The Scripts](#running-the-scripts)
+  - [ncc-establish-subscription.py](#ncc-establish-subscriptionpy)
+  - [ncc.py](#nccpy)
+    - [Device Capabilities](#device-capabilities)
+    - [Snippets](#snippets)
+- [Running The Jupyter Notebooks](#running-the-jupyter-notebooks)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
+
 ## Introduction
 
 This repository presents:
@@ -23,7 +40,9 @@ Requirement already up-to-date: pip in ./v/lib/python2.7/site-packages
 (v)EINARNN-M-80AT:ncc einarnn$ pip install -r requirements.txt
 ```
 
-This example shows using the virtualenv tool to isolate packages from your global python install. This is recommended. Note that the versiojn of pip installed in the test environment was up to date, and so it did not need upgraded.
+This example shows using the virtualenv tool to isolate packages from your global python install. This is recommended. Note that the version of pip installed in the test environment was up to date, and so it did not need upgraded.
+
+Please note that the script `ncc-establish-subscription.py` currently requires a temporarily forked version of the `ncclient` library.
 
 
 ## Python Scripts
@@ -31,6 +50,8 @@ This example shows using the virtualenv tool to isolate packages from your globa
 The Python scripts have been radically rationalized and there are now just a few key scripts, with the remainder moved to the [```archived```](archived) directory. The main scripts are:
 
 * [```ncc.py```](ncc.py) -- A kind of Swiss Army Knife script with many options to get-config, get, edit-config, pass in parameters for substitution, etc. Can be easily extended by users to have more edit-config templates or more named filter templates. Available content can be seen using the ```--list-templates``` and ```--list-filters``` parameters.
+
+* [`ncc-establish-subscription.py`](ncc-establish-subscription.py) -- Simple script to allow the creation of multiple dynamic telemetry subscriptions per an early draft of the IETF YANG Push functionality. Currently supported on IOS-XE 16.6.1 and later. Initial support was for switching platforms, with other platforms being supported in subsequent releases. **Note that this script requires a fork of the `ncclient` library. Once the Python dependencies above have been installed, the forked version may be installed using the command `pip install --upgrade git+https://github.com/CiscoDevNet/ncclient.git`**. Please see [here](https://github.com/CiscoDevNet/ncclient/blob/master/README.md) for more details.
 
 * [```ncc-filtered-get.py```](ncc-filtered-get.py) -- Very simple script that takes a subtree filter and does a get.
 
@@ -55,12 +76,52 @@ A couple of the scripts used to have other names, so, for backwards compatibilit
 
 The scripts mostly have a fairly common set of options for help, hostname, port, username and password. Just try running with the `--help` option.
 
-### ncc.py
-
-The script `ncc.py` presents a number of useful operations. If we look at its help:
-
 > Note that the help text displayed here may be out of step with the actual code. Please run latest version of the script to ensure satisfaction!
 
+
+### ncc-establish-subscription.py
+
+> Note that this script requires a fork of the `ncclient` library. Once the Python dependencies above have been installed, the forked version may be installed using the command:
+>
+>`pip install --upgrade git+https://github.com/CiscoDevNet/ncclient.git`.
+>
+> Please see [here](https://github.com/CiscoDevNet/ncclient/blob/master/README.md) for more details.
+
+```
+$ ./ncc-establish-subscription.py --help
+usage: ncc-establish-subscription.py [-h] [--host HOST] [-u USERNAME]
+                                     [-p PASSWORD] [--port PORT] [-v]
+                                     [--delete-after DELETE_AFTER]
+                                     [-x XPATHS [XPATHS ...]]
+                                     (--period PERIOD | --dampening-period DAMPENING_PERIOD)
+
+Select your telemetry parameters:
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --host HOST           The IP address for the device to connect to (default
+                        localhost)
+  -u USERNAME, --username USERNAME
+                        Username to use for SSH authentication (default
+                        'cisco')
+  -p PASSWORD, --password PASSWORD
+                        Password to use for SSH authentication (default
+                        'cisco')
+  --port PORT           Specify this if you want a non-default port (default
+                        830)
+  -v, --verbose         Exceedingly verbose logging to the console
+  --delete-after DELETE_AFTER
+                        Delete the established subscription after N seconds
+  -x XPATHS [XPATHS ...], --xpaths XPATHS [XPATHS ...]
+                        List of xpaths to subscribe to, one or more
+  --period PERIOD       Period in centiseconds for periodic subscription
+  --dampening-period DAMPENING_PERIOD
+                        Dampening period in centiseconds for on-change
+                        subscription
+
+```
+
+### ncc.py
 
 ```
 $ python ncc.py --help
