@@ -1,12 +1,14 @@
 #!/usr/bin/env python
-import sys
-import signal
-from argparse import ArgumentParser
-from ncclient import manager
-from lxml import etree
-import logging
-import time
 import datetime
+import logging
+import os
+import signal
+import sys
+import time
+
+from argparse import ArgumentParser
+from lxml import etree
+from ncclient import manager
 from ncclient.transport.session import SessionListener
 
 #
@@ -38,9 +40,11 @@ if __name__ == '__main__':
     # Input parameters
     parser.add_argument('--host', type=str, required=True,
                         help="The device IP or DN")
-    parser.add_argument('-u', '--username', type=str, default='cisco',
+    parser.add_argument('-u', '--username', type=str,
+                        default=os.environ.get('NCC_USERNAME', 'cisco'),
                         help="Go on, guess!")
-    parser.add_argument('-p', '--password', type=str, default='cisco',
+    parser.add_argument('-p', '--password', type=str,
+                        default=os.environ.get('NCC_PASSWORD', 'cisco'),
                         help="Yep, this one too! ;-)")
     parser.add_argument('--port', type=int, default=830,
                         help="Specify this if you want a non-default port")
@@ -48,7 +52,7 @@ if __name__ == '__main__':
                         help="Do I really need to explain?")
     parser.add_argument('--delete-after', type=int,
                         help="Delete the established subscription after N seconds")
-    parser.add_argument('--xpaths', type=str, nargs='+',
+    parser.add_argument('-x', '--xpaths', type=str, nargs='+',
                         help="List of xpaths to subscribe to, one or more")
 
     g = parser.add_mutually_exclusive_group(required=True)
@@ -120,6 +124,9 @@ if __name__ == '__main__':
         if s.subscription_result.endswith('ok'):
             print('Subscription Id     : %d' % s.subscription_id)
             subs.append(s.subscription_id)
+    if not len(subs):
+        print('No active subscriptions, exiting.')
+        sys.exit(1)
 
     #
     # simple forever loop
