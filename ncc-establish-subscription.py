@@ -47,7 +47,7 @@ if __name__ == '__main__':
     parser.add_argument('--port', type=int, default=os.environ.get('NCC_PORT',830),
                         help="Specify this if you want a non-default port (default 830)")
     parser.add_argument('-v', '--verbose', action='store_true',
-                        help="Do I really need to explain?")
+                        help="Exceedingly verbose logging to the console")
     parser.add_argument('--delete-after', type=int,
                         help="Delete the established subscription after N seconds")
     parser.add_argument('-x', '--xpaths', type=str, nargs='+',
