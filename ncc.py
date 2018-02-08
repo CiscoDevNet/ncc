@@ -256,7 +256,8 @@ def get(m, filter=None, xpath=None):
 
 if __name__ == '__main__':
 
-    parser = ArgumentParser(description='Select your NETCONF operation and parameters:')
+    parser = ArgumentParser(
+        description='Select your NETCONF operation and parameters:')
 
     #
     # NETCONF session parameters
@@ -273,7 +274,8 @@ if __name__ == '__main__':
                         default=os.environ.get('NCC_PASSWORD', 'cisco'),
                         help="Password to use for SSH authentication "
                         "(default 'cisco')")
-    parser.add_argument('--port', type=int, default=os.environ.get('NCC_PORT',830),
+    parser.add_argument('--port', type=int,
+                        default=os.environ.get('NCC_PORT',830),
                         help="Specify this if you want a non-default port "
                         "(default 830)")
     parser.add_argument('--timeout', type=int, default=60,
@@ -295,23 +297,28 @@ if __name__ == '__main__':
     parser.add_argument('--snippets', type=str,
                         default=os.environ.get(
                             'NCC_SNIPPETS', "%s/snippets" % NCC_DIR),
-                        help="Directory where 'snippets' can be found; default "
-                        "is location of script")
+                        help="Directory where 'snippets' can be found; "
+                        "default is location of script")
 
     #
     # specify a list of namespaces
     #
     parser.add_argument('--ns', type=str, nargs='+',
-                        help="Specify list of prefix=NS bindings")
+                        help="Specify list of prefix=NS bindings or JSON "
+                        "files with bindings. @filename will read a JSON file "
+                        "and update the set of namespace bindings, silently"
+                        "overwriting with any redefinitions.")
 
     #
     # Various operation parameters. These will be put into a kwargs
     # dictionary for use in template rendering.
     #
     parser.add_argument('--params', type=str,
-                        help="JSON-encoded string of parameters dictionaryfor templates")
+                        help="JSON-encoded string of parameters dictionary "
+                        "for templates")
     parser.add_argument('--params-file', type=str,
-                        help="JSON-encoded file of parameters dictionary for templates")
+                        help="JSON-encoded file of parameters dictionary "
+                        "for templates")
     #
     # Only one type of filter allowed.
     #
@@ -402,21 +409,30 @@ if __name__ == '__main__':
         kwargs = {}
 
     #
-    # parse any ns bindings if provided
+    # Parse any ns bindings if provided. If a binding starts with "@",
+    # we assume it is a filename with a JSON representation of a
+    # dict. The contents of the dict will be merged over the current
+    # ns_dict, and **silently** overwrite existing bindings.
     #
     if args.ns:
         for ns in args.ns:
-            prefix, namespace = ns.split('=')
-            if not prefix or not namespace:
-                next
+            if ns.startswith('@'):
+                update_dict = json.loads(open(ns[1:], 'r').read())
+                ns_dict.update(update_dict)
             else:
-                if prefix in ns_dict and ns_dict[prefix]!=namespace:
-                    print('Clashing namespace defined:')
-                    print('  xmlns:%s="%s" (existing)' % (prefix, ns_dict[prefix]))
-                    print('  xmlns:%s="%s" (redfinition)' % (prefix, namespace))
-                    sys.exit(1)
+                prefix, namespace = ns.split('=')
+                if not prefix or not namespace:
+                    next
                 else:
-                    ns_dict[prefix] = namespace
+                    if prefix in ns_dict and ns_dict[prefix]!=namespace:
+                        print('Clashing namespace defined:')
+                        print('  xmlns:%s="%s" (existing)'
+                              % (prefix, ns_dict[prefix]))
+                        print('  xmlns:%s="%s" (redfinition)'
+                              % (prefix, namespace))
+                        sys.exit(1)
+                    else:
+                        ns_dict[prefix] = namespace
     if args.xpath:
         args.xpath = cook_xpath(args.xpath)
 
@@ -467,8 +483,17 @@ if __name__ == '__main__':
         CANDIDATE = True
 
 
+    #
+    # Main operations
+    #
+    # TODO: get_running/get_oper are a bit samey, could be done better
+    #
     if args.get_running:
-        get_running_config(m, xpath=args.xpath, filter=args.filter)
+        if isinstance(args.filter, list):
+            for f in args.filter:
+                get_running_config(m, filter=f, xpath=None)
+        else:
+            get_running_config(m, xpath=args.xpath, filter=args.filter)
 
     elif args.get_oper:
         if isinstance(args.filter, list):
@@ -476,11 +501,13 @@ if __name__ == '__main__':
                 get(m, filter=f, xpath=None)
         else:
             get(m, filter=args.filter, xpath=args.xpath)
+
     elif args.do_edits:
         try:
             do_templates(
                 m,
-                [named_templates.get_template('%s.tmpl' % t) for t in args.do_edits],
+                [named_templates.get_template('%s.tmpl' % t)
+                  for t in args.do_edits],
                 default_op=args.default_op,
                 **kwargs)
         except RPCError as e:
