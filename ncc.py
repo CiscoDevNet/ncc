@@ -5,13 +5,13 @@ import os
 from argparse import ArgumentParser
 from ncclient import manager
 from ncclient.operations.rpc import RPCError
-from ncclient.xml_ import *
+# from ncclient.xml_ import *
 from jinja2 import Environment
 from jinja2.exceptions import UndefinedError
 from jinja2 import meta
 from jinja2 import FileSystemLoader
 from jinja2 import StrictUndefined
-from jinja2 import Template
+# from jinja2 import Template
 from lxml import etree
 import logging
 import json
@@ -27,6 +27,13 @@ LOGGING_TO_ENABLE = [
     'ncclient.operations.rpc'
 ]
 
+
+#
+# Namespaces starting point for xpath queries
+#
+ns_dict = {
+    'nc': 'urn:ietf:params:xml:ns:netconf:base:1.0'
+}
 
 #
 # Capability constants
@@ -48,8 +55,8 @@ NCC_DIR, _ = os.path.split(os.path.realpath(__file__))
 
 
 def strip_leading_trailing_ws(to_strip):
-    s1 = re.sub(r"^\s*" , "" , to_strip)
-    s2 = re.sub(r"\s*$" , "" , s1)
+    s1 = re.sub(r"^\s*", "", to_strip)
+    s2 = re.sub(r"\s*$", "", s1)
     return s2
 
 
@@ -70,8 +77,6 @@ def display_capabilities(m):
         m = re.search(re_model, c)
         if m:
             module_list.append('%s (%s)' % (m.group(2), m.group(1)))
-        #else:
-        #    print('UNMATCHED model: %s' % c)
 
     # pre-process capabilities, split into various categories
     ns_to_list = [
@@ -136,6 +141,7 @@ def query_model_support(m, re_module):
                 matches.append(model)
     return matches
 
+
 def list_templates(header, source_env):
     """List out all the templates in the provided environment, parse them
     and extract variables that should be provided.
@@ -159,6 +165,32 @@ def list_templates(header, source_env):
                 print()
 
 
+def cook_xpath(xpath):
+    # The basic XPath filter, in XML, looks like:
+    #
+    # <nc:filter type="xpath"
+    #            xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0"
+    #            xmlns:if="urn:ietf:params:xml:ns:yang:ietf-interfaces"
+    #            select="/some/x/path/query"/>)
+    #
+    # We need to:
+    # - identify all "ns:" occurrences
+    # - create a namespace mapping that we will put in the XML outside select
+    # - construct the XML
+    #
+    filter_template = '<nc:filter type="xpath" %s select="%s"/>'
+    ns_set = { 'nc' }
+    re_ns = re.compile('([\w\-]+):([\w\-]+)')
+    for prefix, local_name in re_ns.findall(xpath):
+        if prefix not in ns_dict:
+            print('Required prefix "%s" not defined' % prefix)
+            sys.exit(1)
+        else:
+            ns_set.add(prefix)
+    namespaces = ' '.join(['xmlns:%s="%s"' % (p, ns_dict[p]) for p in ns_set])
+    return filter_template % (namespaces, xpath)
+
+
 def do_templates(m, t_list, default_op='merge', **kwargs):
     """Execute a list of templates, using the kwargs passed in to
     complete the rendering.
@@ -168,7 +200,8 @@ def do_templates(m, t_list, default_op='merge', **kwargs):
         try:
             data = tmpl.render(kwargs)
         except UndefinedError as e:
-            print ("Undefined variable %s.  Use --params to specify json dict" % e.message)
+            print("Undefined variable %s.  Use --params to specify json dict"
+                  % e.message)
             # assuming we should fail if a single template fails?
             exit(1)
 
@@ -187,40 +220,39 @@ def do_templates(m, t_list, default_op='merge', **kwargs):
 
 
 def get_running_config(m, filter=None, xpath=None):
-    """Get running config with a passed in filter. If both types of
-    filter are passed in for some reason, the subtree filter "wins".
+    """
+    Get running config with a passed in filter. If both types of filter
+    are passed in for some reason, the subtree filter "wins". When an
+    xpath filter is passed in, it is assumed to be the fully created
+    XML, and so is not passed to ncclient using the tuple syntax.
     """
     import time
     if filter and len(filter) > 0:
-        
         c = m.get_config(source='running', filter=('subtree', filter))
-        
     elif xpath and len(xpath)>0:
-        
-        c = m.get_config(source='running', filter=('xpath', xpath))
-        
-        # test for xpath filter with namespaces
-        # c = m.get_config(source='running', filter='<nc:filter type="xpath" xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0" xmlns:if="urn:ietf:params:xml:ns:yang:ietf-interfaces" select="%s"/>' % xpath)
-        
+        c = m.get_config(source='running', filter=xpath)
     else:
-        
         c = m.get_config(source='running')
-
     print(etree.tostring(c.data, pretty_print=True).decode('UTF-8'))
 
+
 def get(m, filter=None, xpath=None):
-    """Get state with a passed in filter. If both types of filter are
-    passed in for some reason, the subtree filter "wins".
+    """
+    Get state with a passed in filter. If both types of filter are
+    passed in for some reason, the subtree filter "wins". When an
+    xpath filter is passed in, it is assumed to be the fully created
+    XML, and so is not passed to ncclient using the tuple syntax.
     """
     if filter and len(filter) > 0:
         c = m.get(filter=('subtree', filter))
     elif xpath and len(xpath)>0:
-        c = m.get(filter=('xpath', xpath))
+        c = m.get(filter=xpath)
     else:
         print("Need a filter for oper get!")
         return
     # Python3 will see this as a byte string
     print(etree.tostring(c.data, pretty_print=True).decode('UTF-8'))
+
 
 if __name__ == '__main__':
 
@@ -229,31 +261,48 @@ if __name__ == '__main__':
     #
     # NETCONF session parameters
     #
-    parser.add_argument('--host', type=str, default=os.environ.get('NCC_HOST','127.0.0.1'),
-                        help="The IP address for the device to connect to (default localhost)")
-    parser.add_argument('-u', '--username', type=str, default=os.environ.get('NCC_USERNAME', 'cisco'),
-                        help="Username to use for SSH authentication (default 'cisco')")
-    parser.add_argument('-p', '--password', type=str, default=os.environ.get('NCC_PASSWORD', 'cisco'),
-                        help="Password to use for SSH authentication (default 'cisco')")
+    parser.add_argument('--host', type=str,
+                        default=os.environ.get('NCC_HOST','127.0.0.1'),
+                        help="The IP address for the device to connect to "
+                        "(default localhost)")
+    parser.add_argument('-u', '--username', type=str,
+                        default=os.environ.get('NCC_USERNAME', 'cisco'),
+                        help="Username to use for SSH authentication "
+                        "(default 'cisco')")
+    parser.add_argument('-p', '--password', type=str,
+                        default=os.environ.get('NCC_PASSWORD', 'cisco'),
+                        help="Password to use for SSH authentication "
+                        "(default 'cisco')")
     parser.add_argument('--port', type=int, default=os.environ.get('NCC_PORT',830),
-                        help="Specify this if you want a non-default port (default 830)")
+                        help="Specify this if you want a non-default port "
+                        "(default 830)")
     parser.add_argument('--timeout', type=int, default=60,
-                        help="NETCONF operation timeout in seconds (default 60)")
+                        help="NETCONF operation timeout in seconds "
+                        "(default 60)")
     parser.add_argument('-v', '--verbose', action='store_true',
                         help="Exceedingly verbose logging to the console")
     parser.add_argument('--default-op', type=str, default='merge',
-                        help="The NETCONF default operation to use (default 'merge')")
+                        help="The NETCONF default operation to use "
+                        "(default 'merge')")
     parser.add_argument('--device-type', type=str, default=None,
-                         help='The device type to pass to ncclient (default: None)')
+                         help="The device type to pass to ncclient "
+                         "(default: None)")
 
-    parser.add_argument('-w', '--where', action='store_true',
-                        help="Print where script is and exit")
 
     #
     # Where we want to source snippets from
     #
-    parser.add_argument('--snippets', type=str, default=os.environ.get('NCC_SNIPPETS', "%s/snippets" % NCC_DIR),
-                        help="Directory where 'snippets' can be found; default is location of script")
+    parser.add_argument('--snippets', type=str,
+                        default=os.environ.get(
+                            'NCC_SNIPPETS', "%s/snippets" % NCC_DIR),
+                        help="Directory where 'snippets' can be found; default "
+                        "is location of script")
+
+    #
+    # specify a list of namespaces
+    #
+    parser.add_argument('--ns', type=str, nargs='+',
+                        help="Specify list of prefix=NS bindings")
 
     #
     # Various operation parameters. These will be put into a kwargs
@@ -281,7 +330,12 @@ if __name__ == '__main__':
     g.add_argument('-c', '--capabilities', action='store_true',
                    help="Display capabilities of the device.")
     g.add_argument('--is-supported', type=str,
-                   help="Query the server capabilities to determine whether the device claims to support YANG modules matching the provided regular expression. The regex provided is not automatically anchored to start or end. Note that the regex supplied must be in a format valid for Python and that it may be necessary to quote the argument.")
+                   help="Query the server capabilities to determine whether "
+                   "the device claims to support YANG modules matching the "
+                   "provided regular expression. The regex provided is not "
+                   "automatically anchored to start or end. Note that the "
+                   "regex supplied must be in a format valid for Python and "
+                   "that it may be necessary to quote the argument.")
     g.add_argument('--list-templates', action='store_true',
                    help="List out named edit-config templates")
     g.add_argument('--list-filters', action='store_true',
@@ -291,7 +345,12 @@ if __name__ == '__main__':
     g.add_argument('--get-oper', action='store_true',
                    help="Get oper data")
     g.add_argument('--do-edits', type=str, nargs='+',
-                   help="Execute a sequence of named templates with an optional default operation and a single commit when candidate config supported. If only writable-running support, ALL operations will be attempted.")
+                   help="Execute a sequence of named templates with an "
+                   "optional default operation and a single commit when "
+                   "candidate config supported. If only writable-running "
+                   "support, ALL operations will be attempted.")
+    g.add_argument('-w', '--where', action='store_true',
+                   help="Print where script is and exit")
 
     #
     # Finally, parse the arguments!
@@ -341,6 +400,25 @@ if __name__ == '__main__':
             f.close()
     else:
         kwargs = {}
+
+    #
+    # parse any ns bindings if provided
+    #
+    if args.ns:
+        for ns in args.ns:
+            prefix, namespace = ns.split('=')
+            if not prefix or not namespace:
+                next
+            else:
+                if prefix in ns_dict and ns_dict[prefix]!=namespace:
+                    print('Clashing namespace defined:')
+                    print('  xmlns:%s="%s" (existing)' % (prefix, ns_dict[prefix]))
+                    print('  xmlns:%s="%s" (redfinition)' % (prefix, namespace))
+                    sys.exit(1)
+                else:
+                    ns_dict[prefix] = namespace
+    if args.xpath:
+        args.xpath = cook_xpath(args.xpath)
 
     #
     # This populates the filter if it's a canned filter.
