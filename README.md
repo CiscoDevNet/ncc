@@ -4,6 +4,7 @@
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
 
+- [New & Updated](#new--updated)
 - [Introduction](#introduction)
 - [Python Dependencies](#python-dependencies)
 - [Python Scripts](#python-scripts)
@@ -16,13 +17,19 @@
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
+## New & Updated
+
+|  Date  | Status |  Description  |
+| :----: | :----: | :------------ |
+| 02/09/18 | ![](images/new.png) | Addition of `--ns` option for XPath filters, allowing either direct list of namespace mapping or via a file (sample file [here](sample-ns.json)) 
+
 
 ## Introduction
 
 This repository presents:
 
 * Python scripts using the ncclient library (`0.5.2` or greater as of writing) to talk to NETCONF-enabled devices.
-* Jupyter (IPython) Notebooks in the directory [```notebooks```](notebooks).
+* Jupyter (IPython) Notebooks in the directory [`notebooks`](notebooks).
 
 
 ## Python Dependencies
@@ -42,7 +49,7 @@ Requirement already up-to-date: pip in ./v/lib/python2.7/site-packages
 
 This example shows using the virtualenv tool to isolate packages from your global python install. This is recommended. Note that the version of pip installed in the test environment was up to date, and so it did not need upgraded.
 
-Please note that the script `ncc-establish-subscription.py` currently requires a temporarily forked version of the `ncclient` library.
+Please note that the script `ncc-establish-subscription.py` currently requires a temporarily [forked version](https://github.com/CiscoDevNet/ncclient) of the `ncclient` library.
 
 
 ## Python Scripts
@@ -126,11 +133,12 @@ optional arguments:
 ```
 $ python ncc.py --help
 usage: ncc.py [-h] [--host HOST] [-u USERNAME] [-p PASSWORD] [--port PORT]
-              [--timeout TIMEOUT] [-v] [--default-op DEFAULT_OP] [-w]
-              [--snippets SNIPPETS] [--params PARAMS]
-              [--params-file PARAMS_FILE]
-              [-f FILTER | --named-filter NAMED_FILTER | -x XPATH]
-              (-c | --is-supported IS_SUPPORTED | --list-templates | --list-filters | -g | --get-oper | --do-edits DO_EDITS [DO_EDITS ...])
+              [--timeout TIMEOUT] [-v] [--default-op DEFAULT_OP]
+              [--device-type DEVICE_TYPE] [--snippets SNIPPETS]
+              [--ns NS [NS ...]] [--params PARAMS] [--params-file PARAMS_FILE]
+              [-f FILTER | --named-filter NAMED_FILTER [NAMED_FILTER ...] | -x
+              XPATH]
+              (-c | --is-supported IS_SUPPORTED | --list-templates | --list-filters | -g | --get-oper | --do-edits DO_EDITS [DO_EDITS ...] | -w)
 
 Select your NETCONF operation and parameters:
 
@@ -150,18 +158,23 @@ optional arguments:
   -v, --verbose         Exceedingly verbose logging to the console
   --default-op DEFAULT_OP
                         The NETCONF default operation to use (default 'merge')
-  -w, --where           Print where script is and exit
+  --device-type DEVICE_TYPE
+                        The device type to pass to ncclient (default: None)
   --snippets SNIPPETS   Directory where 'snippets' can be found; default is
                         location of script
-  --params PARAMS       JSON-encoded string of parameters dictionaryfor
+  --ns NS [NS ...]      Specify list of prefix=NS bindings or JSON files with
+                        bindings. @filename will read a JSON file and update
+                        the set of namespace bindings, silently overwriting
+                        with any redefinitions.
+  --params PARAMS       JSON-encoded string of parameters dictionary for
                         templates
   --params-file PARAMS_FILE
                         JSON-encoded file of parameters dictionary for
                         templates
   -f FILTER, --filter FILTER
                         NETCONF subtree filter
-  --named-filter NAMED_FILTER
-                        Named NETCONF subtree filter
+  --named-filter NAMED_FILTER [NAMED_FILTER ...]
+                        List of named NETCONF subtree filters
   -x XPATH, --xpath XPATH
                         NETCONF XPath filter
   -c, --capabilities    Display capabilities of the device.
@@ -181,6 +194,7 @@ optional arguments:
                         default operation and a single commit when candidate
                         config supported. If only writable-running support,
                         ALL operations will be attempted.
+  -w, --where           Print where script is and exit
 ```
 
 In subsequent sections some of its capabilities will be expanded on.

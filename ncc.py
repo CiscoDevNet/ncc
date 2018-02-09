@@ -306,7 +306,7 @@ if __name__ == '__main__':
     parser.add_argument('--ns', type=str, nargs='+',
                         help="Specify list of prefix=NS bindings or JSON "
                         "files with bindings. @filename will read a JSON file "
-                        "and update the set of namespace bindings, silently"
+                        "and update the set of namespace bindings, silently "
                         "overwriting with any redefinitions.")
 
     #
