@@ -246,7 +246,19 @@ def get(m, filter=None, xpath=None):
     if filter and len(filter) > 0:
         c = m.get(filter=('subtree', filter))
     elif xpath and len(xpath)>0:
-        c = m.get(filter=xpath)
+        import timeit
+        def wrapper(f, *args, **kwargs):
+            def wrapped():
+                import time
+                time1 = time.time()
+                retval = f(*args, **kwargs)
+                time2 = time.time()
+                print(str(time2-time1)+'\n')
+                return retval
+            return wrapped
+        wrapped = wrapper(m.get, filter=xpath)
+        c = wrapped()
+        # c = m.get(filter=xpath)
     else:
         print("Need a filter for oper get!")
         return
@@ -289,7 +301,6 @@ if __name__ == '__main__':
     parser.add_argument('--device-type', type=str, default=None,
                          help="The device type to pass to ncclient "
                          "(default: None)")
-
 
     #
     # Where we want to source snippets from

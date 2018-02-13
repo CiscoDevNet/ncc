@@ -11,27 +11,6 @@ from lxml import etree
 from ncclient import manager
 from ncclient.transport.session import SessionListener
 
-#
-# some useful constants
-#
-CISCO_CDP_OPER_NS = 'http://cisco.com/ns/yang/Cisco-IOS-XE-cdp-oper'
-CISCO_PROCESS_CPU_OPER = 'http://cisco.com/ns/yang/Cisco-IOS-XE-process-cpu-oper'
-
-#
-# globals
-#
-events_received = 0
-
-
-def get(m, filter=None, xpath=None):
-    if filter and len(filter) > 0:
-        return m.get(filter=('subtree', filter))
-    elif xpath and len(xpath)>0:
-        return m.get(filter=('xpath', xpath))
-    else:
-        print ("Need a filter for oper get!")
-        return None
-
 
 if __name__ == '__main__':
 
@@ -52,7 +31,9 @@ if __name__ == '__main__':
                         help="Delete the established subscription after N seconds")
     parser.add_argument('-x', '--xpaths', type=str, nargs='+',
                         help="List of xpaths to subscribe to, one or more")
-
+    parser.add_argument('--callback', type=str,
+                        help="Module that a callback is defined in")
+    
     g = parser.add_mutually_exclusive_group(required=True)
     g.add_argument('--period', type=int,
                    help="Period in centiseconds for periodic subscription")
@@ -92,29 +73,40 @@ if __name__ == '__main__':
     signal.signal(signal.SIGINT, sigint_handler)
 
     #
-    # a pair of really simple callbacks...
+    # a really simple callbacks
     #
     def callback(notif):
         print('-->>')
-        # print('Num Events Rxd  : %d' % events_received)
+        print('(Default Callback)')
         print('Event time      : %s' % notif.event_time)
         print('Subscription Id : %d' % notif.subscription_id)
         print('Type            : %d' % notif.type)
         print('Data            :')
-        print(etree.tostring(notif.datastore_ele, pretty_print=True))
+        print(etree.tostring(notif.datastore_ele, pretty_print=True).decode('utf-8'))
         print('<<--')
 
     def errback(notif):
         pass
-    
+
+    #
+    # Select the callback to use
+    #
+    selected_callback = callback
+    selected_errback = errback
+    if args.callback:
+        import importlib
+        module = importlib.import_module(args.callback)
+        selected_callback = getattr(module, 'callback')
+        selected_errback = getattr(module, 'errback')
+
     #
     # iterate over the list of xpaths and create subscriptions
     #
     subs = []
     for xpath in args.xpaths:
         s = m.establish_subscription(
-            callback,
-            errback,
+            selected_callback,
+            selected_errback,
             xpath=xpath,
             period=args.period,
             dampening_period=args.dampening_period)

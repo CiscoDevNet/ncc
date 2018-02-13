@@ -1,0 +1,4 @@
+export NCC_HOST=127.0.0.1
+export NCC_PORT=2223
+export NCC_USERNAME=vagrant
+export NCC_PASSWORD=vagrant
