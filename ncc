@@ -344,6 +344,8 @@ if __name__ == '__main__':
     # Mutually exclusive operations.
     #
     g = parser.add_mutually_exclusive_group(required=True)
+    g.add_argument('--env', action='store_true',
+                   help="Display environment variables a user can set.")
     g.add_argument('-c', '--capabilities', action='store_true',
                    help="Display capabilities of the device.")
     g.add_argument('--is-supported', type=str,
@@ -373,6 +375,18 @@ if __name__ == '__main__':
     # Finally, parse the arguments!
     #
     args = parser.parse_args()
+
+    #
+    # Display the environment variable
+    #
+    if args.env:
+        print('A user may set the following environment variables for use '
+              '(with examples):\n')
+        print('export NCC_HOST=127.0.0.1')
+        print('export NCC_PORT=2223')
+        print('export NCC_USERNAME=vagrant')
+        print('export NCC_PASSWORD=vagrant\n')
+        sys.exit(0)
 
     #
     # Setup the templates for use.
