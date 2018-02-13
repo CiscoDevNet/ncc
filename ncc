@@ -1,21 +1,20 @@
 #!/usr/bin/env python
 from __future__ import print_function
-import sys
+import json
+import logging
 import os
+import re
+import sys
+
 from argparse import ArgumentParser
-from ncclient import manager
-from ncclient.operations.rpc import RPCError
-# from ncclient.xml_ import *
 from jinja2 import Environment
-from jinja2.exceptions import UndefinedError
-from jinja2 import meta
 from jinja2 import FileSystemLoader
 from jinja2 import StrictUndefined
-# from jinja2 import Template
+from jinja2 import meta
+from jinja2.exceptions import UndefinedError
 from lxml import etree
-import logging
-import json
-import re
+from ncclient import manager
+from ncclient.operations.rpc import RPCError
 
 #
 # Add things people want logged here. Just various netconf things for
