@@ -4,9 +4,13 @@ import json
 import logging
 import os
 import re
+import shutil
 import sys
+import tempfile
 
 from argparse import ArgumentParser
+from git import Repo
+from git.exc import GitCommandError
 from jinja2 import Environment
 from jinja2 import FileSystemLoader
 from jinja2 import StrictUndefined
@@ -26,6 +30,10 @@ LOGGING_TO_ENABLE = [
     'ncclient.operations.rpc'
 ]
 
+#
+# Repository to clone snippets from
+#
+REPO_URL = 'https://github.com/CiscoDevNet/ncc.git'
 
 #
 # Namespaces starting point for xpath queries
@@ -235,6 +243,24 @@ def get_running_config(m, filter=None, xpath=None):
     print(etree.tostring(c.data, pretty_print=True).decode('UTF-8'))
 
 
+def install_snippets(target_dir='.'):
+    localdir = tempfile.mkdtemp()
+    repo = Repo.clone_from(REPO_URL, localdir)
+    for entry in os.listdir(localdir):
+        if entry.startswith('snippets'):
+            shutil.move(localdir + '/' + entry, target_dir)
+    shutil.rmtree(localdir)
+
+
+def display_env_vars():
+    print('A user may set the following environment variables for use '
+          '(with examples):\n')
+    print('export NCC_HOST=127.0.0.1')
+    print('export NCC_PORT=2223')
+    print('export NCC_USERNAME=vagrant')
+    print('export NCC_PASSWORD=vagrant\n')
+
+    
 def get(m, filter=None, xpath=None):
     """
     Get state with a passed in filter. If both types of filter are
@@ -346,6 +372,9 @@ if __name__ == '__main__':
     g = parser.add_mutually_exclusive_group(required=True)
     g.add_argument('--env', action='store_true',
                    help="Display environment variables a user can set.")
+    g.add_argument('--install-snippets', action='store_true',
+                   help="Use git to obtain the snippets from GitHub and copy "
+                   "to the current directory")
     g.add_argument('-c', '--capabilities', action='store_true',
                    help="Display capabilities of the device.")
     g.add_argument('--is-supported', type=str,
@@ -380,12 +409,14 @@ if __name__ == '__main__':
     # Display the environment variable
     #
     if args.env:
-        print('A user may set the following environment variables for use '
-              '(with examples):\n')
-        print('export NCC_HOST=127.0.0.1')
-        print('export NCC_PORT=2223')
-        print('export NCC_USERNAME=vagrant')
-        print('export NCC_PASSWORD=vagrant\n')
+        display_env_vars()
+        sys.exit(0)
+
+    #
+    # install the snippets to the current directory
+    #
+    if args.install_snippets:
+        install_snippets()
         sys.exit(0)
 
     #

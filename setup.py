@@ -13,7 +13,6 @@ setup(
     scripts = [
         'ncc-get-all-schema',
         'ncc-get-schema',
-        #'ncc-simple-poller',
         'ncc'
     ],
     author = 'Einar Nilsen-Nygaard',
@@ -23,7 +22,8 @@ setup(
     install_requires = [
         'Jinja2>=2.8',
         'pyang>=1.7.3',
-        'ncclient>=0.5.3'
+        'ncclient>=0.5.3',
+        'GitPython>=2.1.3'
     ],
     include_package_data = True,
     keywords = ['yang', 'netconf'],
