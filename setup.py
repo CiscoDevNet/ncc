@@ -11,7 +11,7 @@ setup(
     long_description = """The package ncc contains a set of scripts for working with NETCONF/YANG via the ncclient library. Scripts support simple tasks such as get/get-config/edit-config and schema download and more! Not all scripts in the repository itself are installed.""",
     # packages = ['ncc'],
     scripts = [
-        #'ncc-get-all-schema',
+        'ncc-get-all-schema',
         'ncc-get-schema',
         #'ncc-simple-poller',
         'ncc'
