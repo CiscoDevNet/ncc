@@ -96,15 +96,15 @@ if __name__ == '__main__':
 
     def unknown_host_cb(host, fingerprint):
         return True
-    mgr =  manager.connect(host=args.host,
-                           port=args.port,
-                           username=args.username,
-                           password=args.password,
-                           timeout=args.timeout,
-                           allow_agent=False,
-                           look_for_keys=False,
-                           hostkey_verify=False,
-                           unknown_host_cb=unknown_host_cb)
+    mgr = manager.connect(host=args.host,
+                          port=args.port,
+                          username=args.username,
+                          password=args.password,
+                          timeout=args.timeout,
+                          allow_agent=False,
+                          look_for_keys=False,
+                          hostkey_verify=False,
+                          unknown_host_cb=unknown_host_cb)
 
     #
     # retrieve the schemas datatree and extract all the schema

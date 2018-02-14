@@ -13,7 +13,6 @@ import tempfile
 
 from argparse import ArgumentParser
 from git import Repo
-from git.exc import GitCommandError
 from jinja2 import Environment
 from jinja2 import FileSystemLoader
 from jinja2 import StrictUndefined
@@ -116,7 +115,7 @@ def display_capabilities(m):
                     append_ns_and_module(c, ns_list)
                     matched = True
                     break
-        if matched==False:
+        if matched is False:
             other_models.append(c)
 
     # now print them
@@ -164,13 +163,11 @@ def list_templates(header, source_env):
         with open(tfile, 'r') as f:
             vars = meta.find_undeclared_variables(env.parse(f.read()))
             f.close()
-            print("  {}".format(tname.replace('.tmpl', '')),end=" ")
+            print("  {}".format(tname.replace('.tmpl', '')), end=" ")
             if vars:
-                print (":{",end=" ")
-                #for v in sorted(vars):
-                #    print('"%s" : ""' % v),
-                print (','.join(['"%s" : ""' %v for v in sorted(vars)])) ,
-                print ("}")
+                print(":{", end=" ")
+                print(','.join(['"%s" : ""' % v for v in sorted(vars)])),
+                print("}")
             else:
                 print()
 
@@ -189,7 +186,7 @@ def cook_xpath(xpath):
     # - construct the XML
     #
     filter_template = '<nc:filter type="xpath" %s select="%s"/>'
-    ns_set = { 'nc' }
+    ns_set = {'nc'}
     re_ns = re.compile('([\w\-]+):([\w\-]+)')
     for prefix, local_name in re_ns.findall(xpath):
         if prefix not in ns_dict:
@@ -236,10 +233,9 @@ def get_running_config(m, filter=None, xpath=None):
     xpath filter is passed in, it is assumed to be the fully created
     XML, and so is not passed to ncclient using the tuple syntax.
     """
-    import time
     if filter and len(filter) > 0:
         c = m.get_config(source='running', filter=('subtree', filter))
-    elif xpath and len(xpath)>0:
+    elif xpath and len(xpath) > 0:
         c = m.get_config(source='running', filter=xpath)
     else:
         c = m.get_config(source='running')
@@ -248,7 +244,7 @@ def get_running_config(m, filter=None, xpath=None):
 
 def install_snippets(target_dir='.'):
     localdir = tempfile.mkdtemp()
-    repo = Repo.clone_from(REPO_URL, localdir)
+    Repo.clone_from(REPO_URL, localdir)
     for entry in os.listdir(localdir):
         if entry.startswith('snippets'):
             shutil.move(localdir + '/' + entry, target_dir)
@@ -263,7 +259,7 @@ def display_env_vars():
     print('export NCC_USERNAME=vagrant')
     print('export NCC_PASSWORD=vagrant\n')
 
-    
+
 def get(m, filter=None, xpath=None):
     """
     Get state with a passed in filter. If both types of filter are
@@ -273,20 +269,8 @@ def get(m, filter=None, xpath=None):
     """
     if filter and len(filter) > 0:
         c = m.get(filter=('subtree', filter))
-    elif xpath and len(xpath)>0:
-        import timeit
-        def wrapper(f, *args, **kwargs):
-            def wrapped():
-                import time
-                time1 = time.time()
-                retval = f(*args, **kwargs)
-                time2 = time.time()
-                print(str(time2-time1)+'\n')
-                return retval
-            return wrapped
-        wrapped = wrapper(m.get, filter=xpath)
-        c = wrapped()
-        # c = m.get(filter=xpath)
+    elif xpath and len(xpath) > 0:
+        c = m.get(filter=xpath)
     else:
         print("Need a filter for oper get!")
         return
@@ -303,7 +287,7 @@ if __name__ == '__main__':
     # NETCONF session parameters
     #
     parser.add_argument('--host', type=str,
-                        default=os.environ.get('NCC_HOST','127.0.0.1'),
+                        default=os.environ.get('NCC_HOST', '127.0.0.1'),
                         help="The IP address for the device to connect to "
                         "(default localhost)")
     parser.add_argument('-u', '--username', type=str,
@@ -315,7 +299,7 @@ if __name__ == '__main__':
                         help="Password to use for SSH authentication "
                         "(default 'cisco')")
     parser.add_argument('--port', type=int,
-                        default=os.environ.get('NCC_PORT',830),
+                        default=os.environ.get('NCC_PORT', 830),
                         help="Specify this if you want a non-default port "
                         "(default 830)")
     parser.add_argument('--timeout', type=int, default=60,
@@ -430,7 +414,7 @@ if __name__ == '__main__':
         undefined=StrictUndefined)
     named_templates = Environment(loader=FileSystemLoader(
         '%s/editconfigs' % args.snippets),
-        undefined = StrictUndefined)
+        undefined=StrictUndefined)
 
     #
     # Do the named template/filter listing first, then exit.
@@ -482,7 +466,7 @@ if __name__ == '__main__':
                 if not prefix or not namespace:
                     next
                 else:
-                    if prefix in ns_dict and ns_dict[prefix]!=namespace:
+                    if (prefix in ns_dict) and (ns_dict[prefix] != namespace):
                         print('Clashing namespace defined:')
                         print('  xmlns:%s="%s" (existing)'
                               % (prefix, ns_dict[prefix]))
@@ -504,7 +488,7 @@ if __name__ == '__main__':
                 args.filter.append(named_filters.get_template(
                     '%s.tmpl' % f).render(**kwargs))
         except UndefinedError as e:
-            print ("Undefined variable %s.  Use --params to specify json dict" % e.message)
+            print("Undefined variable %s.  Use --params to specify json dict" % e.message)
             exit(1)
 
     #
@@ -520,16 +504,16 @@ if __name__ == '__main__':
     if args.device_type is not None:
         device_params = {'name': args.device_type}
 
-    m =  manager.connect(host=args.host,
-                         port=args.port,
-                         timeout=args.timeout,
-                         username=args.username,
-                         password=args.password,
-                         allow_agent=False,
-                         look_for_keys=False,
-                         hostkey_verify=False,
-                         device_params=device_params,
-                         unknown_host_cb=unknown_host_cb)
+    m = manager.connect(host=args.host,
+                        port=args.port,
+                        timeout=args.timeout,
+                        username=args.username,
+                        password=args.password,
+                        allow_agent=False,
+                        look_for_keys=False,
+                        hostkey_verify=False,
+                        device_params=device_params,
+                        unknown_host_cb=unknown_host_cb)
 
     #
     # Extract the key capabilities that determine how we interact with
@@ -539,7 +523,6 @@ if __name__ == '__main__':
         RUNNING = True
     if NC_CANDIDATE in m.server_capabilities:
         CANDIDATE = True
-
 
     #
     # Main operations
@@ -573,7 +556,7 @@ if __name__ == '__main__':
             print("---------")
             print("severity: %s" % e.severity)
             print("     tag: %s" % e.tag)
-            if e.path and len(e.path)>0:
+            if e.path and len(e.path) > 0:
                 print("    path: %s" % strip_leading_trailing_ws(e.path))
             print(" message: %s" % e.message)
             print("    type: %s" % e.type)

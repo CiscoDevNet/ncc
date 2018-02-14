@@ -3,7 +3,6 @@
 # Copyright (c) 2018 Cisco and/or its affiliates
 #
 import logging
-import logging
 import os
 import os.path
 import pyang
@@ -39,7 +38,7 @@ def get_schema_with_depends(mgr, schema, version, dest_dir="."):
     If the module give to this routine is a sub-module, the
     'belongs-to' statement is not resolved.
     '''
-    to_resolve = set([ (schema, version) ])
+    to_resolve = set([(schema, version)])
     try:
         repo = pyang.FileRepository(dest_dir)
         while to_resolve:
@@ -47,12 +46,12 @@ def get_schema_with_depends(mgr, schema, version, dest_dir="."):
             c = mgr.get_schema(s, version=v)
             ctx = pyang.Context(repo)
             ctx.add_module(s, c.data)
-            for ((m,r), module) in ctx.modules.iteritems():
-                if m==s:
+            for ((m, r), module) in ctx.modules.iteritems():
+                if m == s:
                     dest_file = '%s/%s@%s.yang' % (dest_dir, m, r)
                     if not os.path.isfile(dest_file):
                         for sub in module.substmts:
-                            if (sub.keyword=='import') or (sub.keyword=='include'):
+                            if (sub.keyword == 'import') or (sub.keyword == 'include'):
                                 to_resolve.add((sub.arg, None))
                             with open(dest_file, 'w') as f:
                                 f.write(c.data)
