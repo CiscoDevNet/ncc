@@ -1,4 +1,7 @@
 #!/usr/bin/env python
+#
+# Copyright (c) 2018 Cisco and/or its affiliates
+#
 import sys
 import requests
 from argparse import ArgumentParser

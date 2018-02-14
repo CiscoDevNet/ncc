@@ -1,5 +1,13 @@
+#
+# Copyright (c) 2018 Cisco and/or its affiliates
+#
 import os
 from setuptools import setup
+
+__author__ = "Einar Nilsen-Nygaard"
+__author_email__ = "einarnn@cisco.com"
+__copyright__ = "Copyright (c) 2018 Cisco and/or its affiliates."
+__license__ = "Apache 2.0"
 
 def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
@@ -15,10 +23,11 @@ setup(
         'ncc-get-schema',
         'ncc'
     ],
-    author = 'Einar Nilsen-Nygaard',
-    author_email = 'einarnn@gmail.com',
-    license = 'Apache 2.0',
+    author = __author__,
+    author_email = __author_email__,
+    license = __license__ + "; " + __copyright__,
     url = 'https://github.com/CiscoDevNet/ncc',
+    download_url = 'https://pypi.python.org/pypi/ncc',
     install_requires = [
         'Jinja2>=2.8',
         'pyang>=1.7.3',
@@ -27,5 +36,15 @@ setup(
     ],
     include_package_data = True,
     keywords = ['yang', 'netconf'],
-    classifiers = [],
+    classifiers = [
+        'Development Status :: 4 - Beta',
+        'Intended Audience :: Developers',
+        'Natural Language :: English',
+        'License :: OSI Approved :: Apache 2.0 License',
+        'Programming Language :: Python :: 2',
+        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
+    ],
 )
