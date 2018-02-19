@@ -18,6 +18,11 @@ import time
 from git.exc import GitCommandError
 
 #
+# setup logging
+#
+logger = logging.getLogger('schemacap')
+
+#
 # Check models script
 #
 check_models = '''
@@ -170,6 +175,7 @@ def get_schema(m, schema_nodes, output_dir):
     failed_download = []
     for s, v in schema_nodes:
         try:
+            logger.log(logging.INFO, 'Downloading schema %s@%s', % (s, v))
             c = m.get_schema(s, version=v)
             with open(output_dir+'/'+s+'@'+v+'.yang', 'w') as yang:
                 print(BeautifulSoup(c.xml,
@@ -177,6 +183,7 @@ def get_schema(m, schema_nodes, output_dir):
                       file=yang)
                 yang.close()
         except RPCError as e:
+            logger.log(logging.INFO, 'Failed to download schema %s@%s', % (s, v))
             failed_download.append((s,v))
     return failed_download
 
@@ -223,6 +230,9 @@ if __name__ == '__main__':
     parser.add_argument('-v', '--verbose', action='store_true',
                         help="Do some verbose logging")
     
+    parser.add_argument('--trace', action='store_true',
+                        help="Trace schema capture tasks specifically")
+    
     args = parser.parse_args()
 
     #
@@ -231,10 +241,24 @@ if __name__ == '__main__':
     #
     if args.verbose:
         handler = logging.StreamHandler()
-        for l in ['ncclient.transport.ssh', 'ncclient.transport.ssession', 'ncclient.operations.rpc']:
-            logger = logging.getLogger(l)
-            logger.addHandler(handler)
-            logger.setLevel(logging.DEBUG)
+        for l in ['schemacap',
+                  'ncclient.transport.ssh',
+                  'ncclient.transport.ssession',
+                  'ncclient.operations.rpc']:
+            ll = logging.getLogger(l)
+            ll.addHandler(handler)
+            ll.setLevel(logging.DEBUG)
+
+    #
+    # Setup schema capture-specific logs
+    #
+    if args.trace:
+        handler = logging.StreamHandler()
+        handler.setFormatter(logging.Formatter('%(asctime)s:%(name)s:%(levelname)s:%(message)s'))
+        for l in ['schemacap']:
+            ll = logging.getLogger(l)
+            ll.addHandler(handler)
+            ll.setLevel(logging.DEBUG)
 
     #
     # Initialize OS & version strings for targetdir
@@ -245,6 +269,7 @@ if __name__ == '__main__':
     #
     # Connect over netmiko
     #
+    logger.log(logging.INFO, 'Connecting to using plain SSH to %s:%d' % (args.host, args.ssh_port))
     d = ConnectHandler(device_type=args.device_type,
                        ip=args.host,
                        port=args.ssh_port,
@@ -252,38 +277,39 @@ if __name__ == '__main__':
                        password=args.password)
     version_output = d.send_command('show version')
     if args.device_type=='cisco_xr':
+        logger.log(logging.INFO, 'Dealing with an IOS-XR device')
         os = 'xr'
         v = re.search(
-            'Version +: +([0-9\.A-Z]+)\n',
+            'Cisco IOS XR Software, +Version *:? *(.*)\n',
             version_output)
         if v is not None:
             ver = v.group(1)
     elif args.device_type=='cisco_ios':
+        logger.log(logging.INFO, 'Dealing with an IOS-XE device')
         os = 'xe'
         v = re.search(
             'Cisco IOS XE Software, Version ([a-zA-Z0-9_\.]+)',
             version_output)
         if v is not None:
             ver = v.group(1)
+    logger.log(logging.INFO, 'Found device software version \'%s\'' % ver)
     args.git_path = '%s/%s/%s' % (args.git_path, os, ver)
-    
+    logger.log(logging.INFO, 'Capturing schemas to relative path %s' % args.git_path)
+
     #
     # Pull down the repo and create the file output directory
     #
     repo = repoutil.RepoUtil(args.git_repo)
+    logger.log(logging.INFO, 'Cloning target git repository to %s' % targetdir)
     repo.clone()
     targetdir = repo.localdir + '/' + args.git_path
     if not exists(targetdir):
         makedirs(targetdir)
 
-    # testing
-    # targetdir = '.' + '/' + args.git_path
-    # if not exists(targetdir):
-    #     makedirs(targetdir)
-    
     #
     # Connect to the router
     #
+    logger.log(logging.INFO, 'Connecting to using netconf to %s:%d' % (args.host, args.port))
     def unknown_host_cb(host, fingerprint):
         return True
     mgr =  manager.connect(host=args.host,
@@ -299,6 +325,7 @@ if __name__ == '__main__':
     #
     # Save out capabilities
     #
+    logger.log(logging.INFO, 'Logging capabilities')
     with open(targetdir+'/'+'capabilities.xml', 'w') as capsfile:
         capsfile.write('''<hello xmlns="urn:ietf:params:xml:ns:netconf:base:1.0">\n <capabilities>\n''')
         for c in mgr.server_capabilities:
@@ -333,12 +360,14 @@ if __name__ == '__main__':
         if model is not None:
             m = model.group(1)
             v = model.group(2)
+            logger.log(logging.INFO, 'Schema %s@%s advertised in capabilities', % (m, v))
             if (m, v) not in schema_nodes:
+                logger.log(logging.INFO, 'Schema %s@%s not in /netconf-state/schemas', % (m, v))
                 not_in_schemas.add((m,v))
     if len(not_in_schemas) > 0:
         reportfile.write('The following models are advertised in capabilities but are not in schemas tree:\n\n')
         for m, v in sorted(not_in_schemas):
-            write('- {}, revision={}\n'.format(m, v))
+            reportfile.write('- {}, revision={}\n'.format(m, v))
     
     #
     # this dict is for keeping track of the schemas that failed to
