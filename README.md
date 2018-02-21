@@ -21,6 +21,7 @@
 
 |  Date  | Status |  Description  |
 | :----: | :----: | :------------ |
+| 02/21/18 | ![](images/updated.png) | Tweaks to `ncc-capture-schema` plus its addition to packaged scripts |
 | 02/14/18 | ![](images/new.png) | Addition of `--install-snippets` and `--env` options to `ncc`.
 | 02/14/18 | ![](images/updated.png) | Preparation for pip installation and PyPi upload; removing `.py` extensions from scripts that will be pip-installed; addition of copyright statements and [`LICENSE.txt`](LICENSE.txt); removed legacy script links.
 | 02/09/18 | ![](images/new.png) | Addition of `--ns` option for XPath filters, allowing either direct list of namespace mapping or via a file (sample file [here](sample-ns.json)) 
@@ -67,6 +68,8 @@ The Python scripts have been radically rationalized and there are now just a few
 * [`ncc-get-all-schema`](ncc-get-all-schema) -- Script that attempts to download all the supported schema that the box has and tries to compile them, determine missing includes or imports, etc.
 
 * [`ncc-get-schema`](ncc-get-schema) -- Script to get a single names schema and dup it to ```STDOUT```.
+
+* [`ncc-capture-schema`](ncc-capture-schema) -- Script to capture the schema from a device and commit int a git reposiroty structured per [YangModels/yang](https://github.com/YangModels/yang). Uses netmiko to capture some initial device information, and needs device type passed in from CLI (per netmiko device types). Currently only supports IOS-XR, IOS-XE and NX-OS without changes. Fairly easy to add other device types.
 
 * [`ncc-simple-poller.py`](ncc-simple-poller.py) -- Script that polls a device on a specified cadence for a specified subtree or XPath filter.
 
