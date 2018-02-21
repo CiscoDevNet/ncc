@@ -1,11 +1,37 @@
 # Various Scripts & Jupyter Notebooks
 
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+
+
+- [New & Updated](#new--updated)
+- [Introduction](#introduction)
+- [Python Dependencies](#python-dependencies)
+- [Python Scripts](#python-scripts)
+  - [Running The Scripts](#running-the-scripts)
+  - [ncc-establish-subscription.py](#ncc-establish-subscriptionpy)
+  - [ncc.py](#nccpy)
+    - [Device Capabilities](#device-capabilities)
+    - [Snippets](#snippets)
+- [Running The Jupyter Notebooks](#running-the-jupyter-notebooks)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
+## New & Updated
+
+|  Date  | Status |  Description  |
+| :----: | :----: | :------------ |
+| 02/14/18 | ![](images/new.png) | Addition of `--install-snippets` and `--env` options to `ncc`.
+| 02/14/18 | ![](images/updated.png) | Preparation for pip installation and PyPi upload; removing `.py` extensions from scripts that will be pip-installed; addition of copyright statements and [`LICENSE.txt`](LICENSE.txt); removed legacy script links.
+| 02/09/18 | ![](images/new.png) | Addition of `--ns` option for XPath filters, allowing either direct list of namespace mapping or via a file (sample file [here](sample-ns.json)) 
+
+
 ## Introduction
 
 This repository presents:
 
 * Python scripts using the ncclient library (`0.5.2` or greater as of writing) to talk to NETCONF-enabled devices.
-* Jupyter (IPython) Notebooks in the directory [```notebooks```](notebooks).
+* Jupyter (IPython) Notebooks in the directory [`notebooks`](notebooks).
 
 
 ## Python Dependencies
@@ -23,53 +49,93 @@ Requirement already up-to-date: pip in ./v/lib/python2.7/site-packages
 (v)EINARNN-M-80AT:ncc einarnn$ pip install -r requirements.txt
 ```
 
-This example shows using the virtualenv tool to isolate packages from your global python install. This is recommended. Note that the versiojn of pip installed in the test environment was up to date, and so it did not need upgraded.
+This example shows using the virtualenv tool to isolate packages from your global python install. This is recommended. Note that the version of pip installed in the test environment was up to date, and so it did not need upgraded.
+
+Please note that the script `ncc-establish-subscription.py` currently requires a temporarily [forked version](https://github.com/CiscoDevNet/ncclient) of the `ncclient` library.
 
 
 ## Python Scripts
 
 The Python scripts have been radically rationalized and there are now just a few key scripts, with the remainder moved to the [```archived```](archived) directory. The main scripts are:
 
-* [```ncc.py```](ncc.py) -- A kind of Swiss Army Knife script with many options to get-config, get, edit-config, pass in parameters for substitution, etc. Can be easily extended by users to have more edit-config templates or more named filter templates. Available content can be seen using the ```--list-templates``` and ```--list-filters``` parameters.
+* [`ncc`](ncc) -- A kind of Swiss Army Knife script with many options to get-config, get, edit-config, pass in parameters for substitution, etc. Can be easily extended by users to have more edit-config templates or more named filter templates. Available content can be seen using the ```--list-templates``` and ```--list-filters``` parameters.
 
-* [```ncc-filtered-get.py```](ncc-filtered-get.py) -- Very simple script that takes a subtree filter and does a get.
+* [`ncc-establish-subscription.py`](ncc-establish-subscription.py) -- Simple script to allow the creation of multiple dynamic telemetry subscriptions per an early draft of the IETF YANG Push functionality. Currently supported on IOS-XE 16.6.1 and later. Initial support was for switching platforms, with other platforms being supported in subsequent releases. **Note that this script requires a fork of the `ncclient` library. Once the Python dependencies above have been installed, the forked version may be installed using the command `pip install --upgrade git+https://github.com/CiscoDevNet/ncclient.git`**. Please see [here](https://github.com/CiscoDevNet/ncclient/blob/master/README.md) for more details.
 
-* [```ncc-get-all-schema.py```](ncc-get-all-schema.py) -- Script that attempts to download all the supported schema that the box has and tries to compile them, determine missing includes or imports, etc.
+* [`ncc-filtered-get.py`](ncc-filtered-get.py) -- Very simple script that takes a subtree filter and does a get.
 
-* [```ncc-get-schema.py```](ncc-get-schema.py) -- Script to get a single names schema and dup it to ```STDOUT```.
+* [`ncc-get-all-schema`](ncc-get-all-schema) -- Script that attempts to download all the supported schema that the box has and tries to compile them, determine missing includes or imports, etc.
 
-* [```ncc-simple-poller.py```](ncc-simple-poller.py) -- Script that polls a device on a specified cadence for a specified subtree or XPath filter.
+* [`ncc-get-schema`](ncc-get-schema) -- Script to get a single names schema and dup it to ```STDOUT```.
 
-* [```rc-xr.py```](rc-xr.py) -- Embryonic RESTCONF sample script using the Python ```requests``` library.
+* [`ncc-simple-poller.py`](ncc-simple-poller.py) -- Script that polls a device on a specified cadence for a specified subtree or XPath filter.
+
+* [`rc-xr.py`](rc-xr.py) -- Embryonic RESTCONF sample script using the Python `requests` library.
 
 
 A couple of the scripts used to have other names, so, for backwards compatibility, the following symlinks currently exist:
-
-
-* ```ncc-oc-bgp.py``` --> ```ncc.py```
-
-* ```ncc-get-all-schema-new.py``` --> ```ncc-get-all-schema.py```
 
 
 ### Running The Scripts
 
 The scripts mostly have a fairly common set of options for help, hostname, port, username and password. Just try running with the `--help` option.
 
-### ncc.py
-
-The script `ncc.py` presents a number of useful operations. If we look at its help:
-
 > Note that the help text displayed here may be out of step with the actual code. Please run latest version of the script to ensure satisfaction!
 
 
+### ncc-establish-subscription.py
+
+> Note that this script requires a fork of the `ncclient` library. Once the Python dependencies above have been installed, the forked version may be installed using the command:
+>
+>`pip install --upgrade git+https://github.com/CiscoDevNet/ncclient.git`.
+>
+> Please see [here](https://github.com/CiscoDevNet/ncclient/blob/master/README.md) for more details.
+
 ```
-$ python ncc.py --help
-usage: ncc.py [-h] [--host HOST] [-u USERNAME] [-p PASSWORD] [--port PORT]
-              [--timeout TIMEOUT] [-v] [--default-op DEFAULT_OP] [-w]
-              [--snippets SNIPPETS] [--params PARAMS]
-              [--params-file PARAMS_FILE]
-              [-f FILTER | --named-filter NAMED_FILTER | -x XPATH]
-              (-c | --is-supported IS_SUPPORTED | --list-templates | --list-filters | -g | --get-oper | --do-edits DO_EDITS [DO_EDITS ...])
+$ ./ncc-establish-subscription.py --help
+usage: ncc-establish-subscription.py [-h] [--host HOST] [-u USERNAME]
+                                     [-p PASSWORD] [--port PORT] [-v]
+                                     [--delete-after DELETE_AFTER]
+                                     [-x XPATHS [XPATHS ...]]
+                                     (--period PERIOD | --dampening-period DAMPENING_PERIOD)
+
+Select your telemetry parameters:
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --host HOST           The IP address for the device to connect to (default
+                        localhost)
+  -u USERNAME, --username USERNAME
+                        Username to use for SSH authentication (default
+                        'cisco')
+  -p PASSWORD, --password PASSWORD
+                        Password to use for SSH authentication (default
+                        'cisco')
+  --port PORT           Specify this if you want a non-default port (default
+                        830)
+  -v, --verbose         Exceedingly verbose logging to the console
+  --delete-after DELETE_AFTER
+                        Delete the established subscription after N seconds
+  -x XPATHS [XPATHS ...], --xpaths XPATHS [XPATHS ...]
+                        List of xpaths to subscribe to, one or more
+  --period PERIOD       Period in centiseconds for periodic subscription
+  --dampening-period DAMPENING_PERIOD
+                        Dampening period in centiseconds for on-change
+                        subscription
+
+```
+
+### ncc
+
+```
+$ ncc --help
+usage: ncc [-h] [--host HOST] [-u USERNAME] [-p PASSWORD] [--port PORT]
+           [--timeout TIMEOUT] [-v] [--default-op DEFAULT_OP]
+           [--device-type DEVICE_TYPE] [--snippets SNIPPETS]
+           [--ns NS [NS ...]] [--params PARAMS] [--params-file PARAMS_FILE]
+           [-f FILTER | --named-filter NAMED_FILTER [NAMED_FILTER ...] | -x
+           XPATH]
+           (--env | --install-snippets | -c | --is-supported IS_SUPPORTED | --list-templates | --list-filters | -g | --get-oper | --do-edits DO_EDITS [DO_EDITS ...] | -w)
 
 Select your NETCONF operation and parameters:
 
@@ -89,20 +155,28 @@ optional arguments:
   -v, --verbose         Exceedingly verbose logging to the console
   --default-op DEFAULT_OP
                         The NETCONF default operation to use (default 'merge')
-  -w, --where           Print where script is and exit
+  --device-type DEVICE_TYPE
+                        The device type to pass to ncclient (default: None)
   --snippets SNIPPETS   Directory where 'snippets' can be found; default is
                         location of script
-  --params PARAMS       JSON-encoded string of parameters dictionaryfor
+  --ns NS [NS ...]      Specify list of prefix=NS bindings or JSON files with
+                        bindings. @filename will read a JSON file and update
+                        the set of namespace bindings, silently overwriting
+                        with any redefinitions.
+  --params PARAMS       JSON-encoded string of parameters dictionary for
                         templates
   --params-file PARAMS_FILE
                         JSON-encoded file of parameters dictionary for
                         templates
   -f FILTER, --filter FILTER
                         NETCONF subtree filter
-  --named-filter NAMED_FILTER
-                        Named NETCONF subtree filter
+  --named-filter NAMED_FILTER [NAMED_FILTER ...]
+                        List of named NETCONF subtree filters
   -x XPATH, --xpath XPATH
                         NETCONF XPath filter
+  --env                 Display environment variables a user can set.
+  --install-snippets    Use git to obtain the snippets from GitHub and copy to
+                        the current directory
   -c, --capabilities    Display capabilities of the device.
   --is-supported IS_SUPPORTED
                         Query the server capabilities to determine whether the
@@ -120,6 +194,7 @@ optional arguments:
                         default operation and a single commit when candidate
                         config supported. If only writable-running support,
                         ALL operations will be attempted.
+  -w, --where           Print where script is and exit
 ```
 
 In subsequent sections some of its capabilities will be expanded on.
@@ -131,7 +206,7 @@ It is now possible to query the device either to return a categorized list of ca
 To get device capabilities:
 
 ```
-python ncc.py --host=192.239.42.222 --capabilities
+python ncc --host=192.239.42.222 --capabilities
 IETF NETCONF Capabilities:
 	urn:ietf:params:netconf:capability:rollback-on-error:1.0
 	urn:ietf:params:netconf:base:1.1
@@ -174,7 +249,7 @@ OpenConfig Models:
 To query for supported models (running against an IOS-XR image):
 
 ```
-15:10 $ python ncc.py --host=192.239.42.222 --is-supported '(?i)snmp'
+15:10 $ python ncc --host=192.239.42.222 --is-supported '(?i)snmp'
 SNMP-NOTIFICATION-MIB
 SNMP-MPD-MIB
 Cisco-IOS-XR-snmp-entstatemib-cfg
@@ -232,7 +307,7 @@ The snippets for both edit config messages and named filters now support a JSON 
 Then, run against IOS-XR:
 
 ```
-$ python ncc.py --host=192.239.42.222 --get-oper --named-filter intf-brief --params '{"INTF_NAME":"GigabitEthernet0/0/0/0"}'
+$ python ncc --host=192.239.42.222 --get-oper --named-filter intf-brief --params '{"INTF_NAME":"GigabitEthernet0/0/0/0"}'
 <data xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0">
   <interfaces xmlns="http://cisco.com/ns/yang/Cisco-IOS-XR-pfi-im-cmd-oper">
    <interface-briefs>
@@ -260,7 +335,7 @@ Or:
 
 ```
 $ echo '{"INTF_NAME":"GigabitEthernet0/0/0/0"}' > test_params.json
-$ python ncc.py --host=192.239.42.222 --get-oper --named-filter intf-brief --params-file test_params.json
+$ python ncc --host=192.239.42.222 --get-oper --named-filter intf-brief --params-file test_params.json
 <data xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0">
   <interfaces xmlns="http://cisco.com/ns/yang/Cisco-IOS-XR-pfi-im-cmd-oper">
    <interface-briefs>
@@ -287,7 +362,7 @@ $ python ncc.py --host=192.239.42.222 --get-oper --named-filter intf-brief --par
 If you do not supply all of the required vars, you will get an error when using the template.  For example in the above
 
 ```
-python ncc.py --host=192.239.42.222 --get-oper --named-filter intf-brief
+python ncc --host=192.239.42.222 --get-oper --named-filter intf-brief
 Undefined variable 'INTF_NAME' is undefined.  Use --params to specify json dict
 
 ```
@@ -301,7 +376,7 @@ If you wish to leave a variable empty (for example in a filter, rather than edit
 When edit-config templates or filters are listed (```--list-templates``` or ```--list-filters```), the variables that need to be substituted are also listed. For example:
 
 ```
-11:28 $ python ncc.py --list-templates
+11:28 $ ncc --list-templates
 Edit-config templates:
   add_neighbor                           <<-- template name
     DESCRIPTION                          <<-- substitution

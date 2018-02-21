@@ -1,0 +1,24 @@
+<config>
+  <native xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-native">
+    <ip>
+      <access-list>
+        <extended xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-acl">
+          <name>101</name>
+          <access-list-seq-rule nc:operation="merge">
+            <sequence>15</sequence>
+            <ace-rule>
+              <action>permit</action>
+              <protocol>ip</protocol>
+              <host>100.100.100.100</host>
+              <dst-any/>
+            </ace-rule>
+          </access-list-seq-rule>
+        </extended>
+      </access-list>
+      <http xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-http">
+        <server>true</server>
+        <secure-server>true</secure-server>
+      </http>
+    </ip>
+  </native>
+</config>

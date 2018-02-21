@@ -1,3 +1,6 @@
+#
+# Copyright (c) 2018 Cisco and/or its affiliates
+#
 import tempfile
 import shutil
 import os
@@ -40,6 +43,19 @@ class RepoUtil(object):
         self.localdir = None
         self.repo = None
 
+    def get_repo_dir(self):
+        '''Return the repository directory name from the URL'''
+        return os.path.basename(self.repourl)
+
+    def get_repo_owner(self):
+        '''Return the root directory name of the repo.  In GitHub
+        parlance, this would be the owner of the repository.'''
+        owner = os.path.basename(os.path.dirname(self.repourl))
+        if ':' in owner:
+            return owner[owner.index(':') + 1:]
+
+        return owner
+
     def clone(self):
         '''Clone the specified repository to a local temp directory. This
         method may generate a git.exec.GitCommandError if the
@@ -64,7 +80,7 @@ class RepoUtil(object):
         if len(modified)>0:
             self.repo.index.add(modified)
         if len(deleted)>0:
-            self.repo.index.remove(modified)
+            self.repo.index.remove(deleted)
 
     def commit_all(self, message='RepoUtil Commit'):
         '''Equivalent of git commit -a -m MESSAGE.'''
@@ -80,7 +96,7 @@ class RepoUtil(object):
         self.localdir = None
         self.repo = None
 
-        
+
 if __name__=='__main__':
 
     #

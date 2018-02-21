@@ -1,0 +1,26 @@
+{# with XE on switches, you will need to make sure no switchport happens first#}
+<config>
+  <interfaces xmlns="http://openconfig.net/yang/interfaces">
+    <interface>
+      <name>{{INTF_NAME}}</name>
+      <subinterfaces>
+        <subinterface>
+          <index>0</index>
+          <ipv4 xmlns="http://openconfig.net/yang/interfaces/ip">
+            <addresses>
+              <address>
+                <ip>{{IP_ADDR}}</ip>
+                <config>
+                  <ip>{{IP_ADDR}}</ip>
+
+                  {# probably should make this a variable too#}
+                  <prefix-length>24</prefix-length>
+                </config>
+              </address>
+            </addresses>
+          </ipv4>
+        </subinterface>
+      </subinterfaces>
+    </interface>
+  </interfaces>
+</config>

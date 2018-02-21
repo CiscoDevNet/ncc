@@ -1,0 +1,14 @@
+<config>
+  <nacm xmlns="urn:ietf:params:xml:ns:yang:ietf-netconf-acm">
+    <rule-list operation="replace">
+      <name>other</name>
+      <group>PRIV14</group>
+      <rule>
+        <name>permit-all</name>
+        <module-name>*</module-name>
+        <access-operations>*</access-operations>
+        <action>permit</action>
+      </rule>
+    </rule-list>
+  </nacm>
+</config>

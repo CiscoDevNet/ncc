@@ -1,0 +1,18 @@
+<config>
+  <native xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-native">
+    <interface>
+      <Loopback>
+        <name>{{NUMBER}}</name>
+        <description>CLEU Demo</description>
+        <ip>
+          <address>
+            <primary>
+              <address>{{IP_ADDR}}</address>
+              <mask>{{IP_MASK}}</mask>
+            </primary>
+          </address>
+        </ip>
+      </Loopback>
+    </interface>
+  </native>
+</config>

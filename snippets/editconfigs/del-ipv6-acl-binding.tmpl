@@ -1,0 +1,13 @@
+<config>
+  <interface-configurations xmlns="http://cisco.com/ns/yang/Cisco-IOS-XR-ifmgr-cfg">
+   <interface-configuration>
+    <active>act</active>
+    <interface-name>{{INTF}}</interface-name>
+    <ipv6-packet-filter xmlns="http://cisco.com/ns/yang/Cisco-IOS-XR-ip-pfilter-cfg">
+     <inbound>
+      <acl-name-array nc:operation="delete">{{INBOUND_ACL}}</acl-name-array>
+     </inbound>
+    </ipv6-packet-filter>
+   </interface-configuration>
+  </interface-configurations>
+</config>

@@ -1,13 +1,17 @@
 #!/usr/bin/env python
+#
+# Copyright (c) 2018 Cisco and/or its affiliates
+#
 import sys
 from argparse import ArgumentParser
 from ncclient import manager
 from lxml import etree
-from BeautifulSoup import BeautifulSoup
+from bs4 import BeautifulSoup
 import logging
 import time
 import datetime
 
+soup = None
 
 def get(m, filter=None, xpath=None):
     if filter and len(filter) > 0:
@@ -21,7 +25,7 @@ def get(m, filter=None, xpath=None):
         
 if __name__ == '__main__':
 
-    parser = ArgumentParser(description='Select your siple poller parameters:')
+    parser = ArgumentParser(description='Select your simple poller parameters:')
 
     # Input parameters
     parser.add_argument('--host', type=str, required=True,
@@ -66,8 +70,6 @@ if __name__ == '__main__':
     # Could use this extra param instead of the last four arguments
     # specified below:
     #
-    # device_params={'name': 'iosxr'}
-    #
     def unknown_host_cb(host, fingerprint):
         return True
     m =  manager.connect(host=args.host,
@@ -79,16 +81,6 @@ if __name__ == '__main__':
                          hostkey_verify=False,
                          unknown_host_cb=unknown_host_cb)
 
-    # if args.get_oper:
-    #     if args.xpath:
-    #         while True:
-    #             get(m, xpath=args.xpath)
-    #             time.sleep(args.cadence)
-    #     elif args.subtree:
-    #         get(m, filter=args.subtree)
-    #     else:
-    #         print("Need to have a filter!")
-    #         sys.exit(1)
     kw = {}
     if args.xpath:
         kw['xpath'] = args.xpath
@@ -99,16 +91,15 @@ if __name__ == '__main__':
         result = get(m, **kw)
         if not args.display_tags:
             print(st)
-            print etree.tostring(etree.fromstring(result.data_xml), pretty_print=True)
+            print(etree.tostring(result.data, pretty_print=True))
         else:
             values = []
             for p in args.display_tags:
                 try:
-                    p_val = BeautifulSoup(
-                        result.xml,
-                        convertEntities=BeautifulSoup.HTML_ENTITIES).find(p).getText()
-                    values.append(p+"="+p_val)
+                    soup = BeautifulSoup(result.data_xml)
+                    for n in soup.find_all(p):
+                        values.append(p + " = " + n.getText())
                 except AttributeError as e:
-                    values.append(p+"=<not_found>")
+                    values.append(p + " = <not_found>")
             print("{}: {}".format(st, ", ".join(values)))
         time.sleep(args.cadence)

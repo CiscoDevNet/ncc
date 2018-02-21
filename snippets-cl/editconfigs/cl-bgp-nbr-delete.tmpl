@@ -1,0 +1,23 @@
+<config>
+  <native xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-native">
+    <router>
+      <bgp xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-bgp">
+        <id>100</id>
+        <neighbor operation="delete">
+          <id>{{NBR_ID}}</id>
+        </neighbor>
+        <address-family>
+          <no-vrf>
+            <ipv4>
+              <af-name>unicast</af-name>
+              <neighbor operation="delete">
+                <id>{{NBR_ID}}</id>
+                <activate/>
+              </neighbor>
+            </ipv4>
+          </no-vrf>
+        </address-family>
+      </bgp>
+    </router>
+  </native>
+</config>

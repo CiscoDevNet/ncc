@@ -1,0 +1,4 @@
+{
+  "if": "urn:ietf:params:xml:ns:yang:ietf-interfaces",
+  "oc-if": "http://openconfig.net/yang/interfaces"
+}
