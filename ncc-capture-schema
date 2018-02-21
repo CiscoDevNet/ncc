@@ -8,6 +8,7 @@ from argparse import ArgumentParser
 from lxml import etree
 from ncclient import manager
 from ncclient.operations.rpc import RPCError
+from nccutil import repoutil
 from netmiko import ConnectHandler
 from os import listdir, makedirs
 from os.path import isfile, join, basename, exists, getsize
@@ -15,7 +16,6 @@ import logging
 import os
 import pyang
 import re
-import repoutil
 import string
 import sys
 import time
