@@ -40,7 +40,7 @@ if __name__ == '__main__':
                         help="Exceedingly verbose logging to the console")
     parser.add_argument('--delete-after', type=int,
                         help="Delete the established subscription after N seconds")
-    parser.add_argument('-x', '--xpaths', type=str, nargs='+',
+    parser.add_argument('-x', '--xpaths', type=str, nargs='+', required=True,
                         help="List of xpaths to subscribe to, one or more")
     parser.add_argument('--callback', type=str,
                         help="Module that a callback is defined in")
