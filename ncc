@@ -195,6 +195,7 @@ def cook_xpath(xpath):
         else:
             ns_set.add(prefix)
     namespaces = ' '.join(['xmlns:%s="%s"' % (p, ns_dict[p]) for p in ns_set])
+    xpath = xpath.replace('"', "'")
     return filter_template % (namespaces, xpath)
 
 
@@ -477,7 +478,8 @@ if __name__ == '__main__':
                         ns_dict[prefix] = namespace
     if args.xpath:
         args.xpath = cook_xpath(args.xpath)
-
+    print(args.xpath)
+    
     #
     # This populates the filter if it's a canned filter.
     #
