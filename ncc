@@ -478,7 +478,6 @@ if __name__ == '__main__':
                         ns_dict[prefix] = namespace
     if args.xpath:
         args.xpath = cook_xpath(args.xpath)
-    print(args.xpath)
     
     #
     # This populates the filter if it's a canned filter.
