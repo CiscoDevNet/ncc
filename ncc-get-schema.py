@@ -1,0 +1,1 @@
+ncc-get-schema
