@@ -253,12 +253,10 @@ def install_snippets(target_dir='.'):
 
 
 def display_env_vars():
-    print('A user may set the following environment variables for use '
-          '(with examples):\n')
-    print('export NCC_HOST=127.0.0.1')
-    print('export NCC_PORT=2223')
-    print('export NCC_USERNAME=vagrant')
-    print('export NCC_PASSWORD=vagrant\n')
+    print('export NCC_HOST=127.0.0.1    # --host')
+    print('export NCC_PORT=2223         # --port')
+    print('export NCC_USERNAME=vagrant  # --username')
+    print('export NCC_PASSWORD=vagrant  # --password\n')
 
 
 def get(m, filter=None, xpath=None):
