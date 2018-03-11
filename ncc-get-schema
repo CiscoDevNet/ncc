@@ -46,7 +46,7 @@ def get_schema_with_depends(mgr, schema, version, dest_dir="."):
             c = mgr.get_schema(s, version=v)
             ctx = pyang.Context(repo)
             ctx.add_module(s, c.data)
-            for ((m, r), module) in ctx.modules.iteritems():
+            for ((m, r), module) in ctx.modules.items():
                 if m == s:
                     dest_file = '%s/%s@%s.yang' % (dest_dir, m, r)
                     if not os.path.isfile(dest_file):
@@ -63,14 +63,22 @@ def get_schema_with_depends(mgr, schema, version, dest_dir="."):
 if __name__ == '__main__':
 
     parser = ArgumentParser(description='Select schema download options:')
-    parser.add_argument('-a', '--host', type=str, required=True,
-                        help="The device IP or DN")
-    parser.add_argument('-u', '--username', type=str, default='cisco',
-                        help="Go on, guess!")
-    parser.add_argument('-p', '--password', type=str, default='cisco',
-                        help="Yep, this one too! ;-)")
-    parser.add_argument('--port', type=int, default=830,
-                        help="Specify this if you want a non-default port")
+    parser.add_argument('--host', type=str,
+                        default=os.environ.get('NCC_HOST', '127.0.0.1'),
+                        help="The IP address for the device to connect to "
+                        "(default localhost)")
+    parser.add_argument('-u', '--username', type=str,
+                        default=os.environ.get('NCC_USERNAME', 'cisco'),
+                        help="Username to use for SSH authentication "
+                        "(default 'cisco')")
+    parser.add_argument('-p', '--password', type=str,
+                        default=os.environ.get('NCC_PASSWORD', 'cisco'),
+                        help="Password to use for SSH authentication "
+                        "(default 'cisco')")
+    parser.add_argument('--port', type=int,
+                        default=os.environ.get('NCC_PORT', 830),
+                        help="Specify this if you want a non-default port "
+                        "(default 830)")
     parser.add_argument('--schema', type=str, required=True,
                         help="Get just this schema")
     parser.add_argument('--get-depends', action='store_true',
