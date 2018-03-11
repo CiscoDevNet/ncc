@@ -21,6 +21,7 @@
 
 |  Date  | Status |  Description  |
 | :----: | :----: | :------------ |
+| 03/11/18 | ![](images/updated.png) | Code review comments addressed, convenience links to still have .py versions of scripts added, `ncc --env` now shows command line option environment variables apply to |
 | 02/21/18 | ![](images/updated.png) | Tweaks to `ncc-capture-schema` plus its addition to packaged scripts |
 | 02/14/18 | ![](images/new.png) | Addition of `--install-snippets` and `--env` options to `ncc`.
 | 02/14/18 | ![](images/updated.png) | Preparation for pip installation and PyPi upload; removing `.py` extensions from scripts that will be pip-installed; addition of copyright statements and [`LICENSE.txt`](LICENSE.txt); removed legacy script links.
