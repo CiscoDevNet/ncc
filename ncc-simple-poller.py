@@ -1,4 +1,7 @@
 #!/usr/bin/env python
+#
+# Copyright (c) 2018 Cisco and/or its affiliates
+#
 import sys
 from argparse import ArgumentParser
 from ncclient import manager

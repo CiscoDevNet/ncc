@@ -31,6 +31,13 @@ def log_items(rx_time, events):
 
 
 #
+# If we need to do any pre-analysis based on xpaths that will be
+# subscribed to.
+#
+def init(xpaths):
+    pass
+
+#
 # the callback for subscription events
 #
 def callback(notif):

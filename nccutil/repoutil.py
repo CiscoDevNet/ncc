@@ -1,3 +1,6 @@
+#
+# Copyright (c) 2018 Cisco and/or its affiliates
+#
 import tempfile
 import shutil
 import os

@@ -1,4 +1,7 @@
 #!/usr/bin/env python
+#
+# Copyright (c) 2018 Cisco and/or its affiliates
+#
 import datetime
 import logging
 import os
@@ -17,19 +20,27 @@ if __name__ == '__main__':
     parser = ArgumentParser(description='Select your telemetry parameters:')
 
     # Input parameters
-    parser.add_argument('--host', type=str, default=os.environ.get('NCC_HOST','127.0.0.1'),
-                        help="The IP address for the device to connect to (default localhost)")
-    parser.add_argument('-u', '--username', type=str, default=os.environ.get('NCC_USERNAME', 'cisco'),
-                        help="Username to use for SSH authentication (default 'cisco')")
-    parser.add_argument('-p', '--password', type=str, default=os.environ.get('NCC_PASSWORD', 'cisco'),
-                        help="Password to use for SSH authentication (default 'cisco')")
-    parser.add_argument('--port', type=int, default=os.environ.get('NCC_PORT',830),
-                        help="Specify this if you want a non-default port (default 830)")
+    parser.add_argument('--host', type=str,
+                        default=os.environ.get('NCC_HOST','127.0.0.1'),
+                        help="The IP address for the device to connect to "
+                        "(default localhost)")
+    parser.add_argument('-u', '--username', type=str,
+                        default=os.environ.get('NCC_USERNAME', 'cisco'),
+                        help="Username to use for SSH authentication "
+                        "(default 'cisco')")
+    parser.add_argument('-p', '--password', type=str,
+                        default=os.environ.get('NCC_PASSWORD', 'cisco'),
+                        help="Password to use for SSH authentication "
+                        "(default 'cisco')")
+    parser.add_argument('--port', type=int,
+                        default=os.environ.get('NCC_PORT',830),
+                        help="Specify this if you want a non-default port "
+                        "(default 830)")
     parser.add_argument('-v', '--verbose', action='store_true',
                         help="Exceedingly verbose logging to the console")
     parser.add_argument('--delete-after', type=int,
                         help="Delete the established subscription after N seconds")
-    parser.add_argument('-x', '--xpaths', type=str, nargs='+',
+    parser.add_argument('-x', '--xpaths', type=str, nargs='+', required=True,
                         help="List of xpaths to subscribe to, one or more")
     parser.add_argument('--callback', type=str,
                         help="Module that a callback is defined in")
@@ -73,7 +84,8 @@ if __name__ == '__main__':
     signal.signal(signal.SIGINT, sigint_handler)
 
     #
-    # a really simple callbacks
+    # A really simple callback, just spit out a header with some key
+    # details plus the XML payload pretty-printed.
     #
     def callback(notif):
         print('-->>')
@@ -91,13 +103,22 @@ if __name__ == '__main__':
     #
     # Select the callback to use
     #
+    selected_init = None
     selected_callback = callback
     selected_errback = errback
     if args.callback:
         import importlib
         module = importlib.import_module(args.callback)
+        selected_init = getattr(module, 'init')
         selected_callback = getattr(module, 'callback')
         selected_errback = getattr(module, 'errback')
+
+    #
+    # If we have a callback "module" specified, call its init function
+    # with the list of xpaths we are dealing with.
+    #
+    if selected_init:
+        selected_init(args.xpaths)
 
     #
     # iterate over the list of xpaths and create subscriptions
