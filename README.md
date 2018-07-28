@@ -21,6 +21,7 @@
 
 |  Date  | Status |  Description  |
 | :----: | :----: | :------------ |
+| 03/11/18 | ![](images/updated.png) | Code review comments addressed, convenience links to still have .py versions of scripts added, `ncc --env` now shows command line option environment variables apply to |
 | 02/21/18 | ![](images/updated.png) | Tweaks to `ncc-capture-schema` plus its addition to packaged scripts |
 | 02/14/18 | ![](images/new.png) | Addition of `--install-snippets` and `--env` options to `ncc`.
 | 02/14/18 | ![](images/updated.png) | Preparation for pip installation and PyPi upload; removing `.py` extensions from scripts that will be pip-installed; addition of copyright statements and [`LICENSE.txt`](LICENSE.txt); removed legacy script links.
@@ -397,9 +398,9 @@ The jupyter notebook server should be run inside the same Python virtualenv as y
 Once Jupyter installed, the notebook server is run up thus:
 
 ```
-EINARNN-M-D10Q:ncc einarnn$ pwd
+$ pwd
 /opt/git-repos/ncc
-EINARNN-M-D10Q:ncc einarnn$ . v/bin/activate
+$ . v/bin/activate
 (v) EINARNN-M-D10Q:ncc einarnn$ jupyter notebook
 [I 16:39:38.230 NotebookApp] The port 8888 is already in use, trying another port.
 [I 16:39:38.240 NotebookApp] Serving notebooks from local directory: /opt/git-repos/ncc
