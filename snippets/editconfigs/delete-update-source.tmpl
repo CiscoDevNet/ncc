@@ -1,0 +1,19 @@
+<config xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0">
+  <native xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-native">
+    <router>
+      <bgp xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-bgp">
+        <id>100</id>
+        <bgp>
+          <router-id>2.2.2.2</router-id>
+          <deterministic-med/>
+        </bgp>
+        <neighbor>
+          <id>14.14.14.2</id>
+          <update-source nc:operation="delete">
+            <Loopback>77</Loopback>
+          </update-source>
+        </neighbor>
+      </bgp>
+    </router>
+  </native>
+</config>

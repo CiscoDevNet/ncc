@@ -1,0 +1,32 @@
+<config xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0">
+  <native xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-native">
+    <interface>
+      <Loopback>
+        <name>{{LO1}}</name>
+        <description>foo</description>
+        <ip>
+          <no-address>
+            <address>false</address>
+          </no-address>
+        </ip>
+      </Loopback>
+        <name>{{LO2}}</name>
+        <description>bar</description>
+        <ip>
+          <no-address>
+            <address>false</address>
+          </no-address>
+        </ip>
+      </Loopback>
+        <name>{{LO2}}</name>
+        <description>baz</description>
+        <ip>
+          <no-address>
+            <address>false</address>
+          </no-address>
+        </ip>
+      </Loopback>
+    </interface>
+  </native>
+</config>
+

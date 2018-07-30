@@ -1,0 +1,21 @@
+<config xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0">
+  <native xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-native" xmlns:ios-bgp="http://cisco.com/ns/yang/Cisco-IOS-XE-bgp">
+    <router>
+      <ios-bgp:bgp>
+        <ios-bgp:id>2</ios-bgp:id>
+        <ios-bgp:address-family>
+          <ios-bgp:no-vrf>
+            <ios-bgp:ipv4 nc:operation="replace">
+              <ios-bgp:af-name>unicast</ios-bgp:af-name>
+              <ios-bgp:maximum-paths>
+                <ios-bgp:max-path>
+                  <ios-bgp:max>4</ios-bgp:max>
+                </ios-bgp:max-path>
+              </ios-bgp:maximum-paths>
+            </ios-bgp:ipv4>
+          </ios-bgp:no-vrf>
+        </ios-bgp:address-family>
+      </ios-bgp:bgp>
+    </router>
+  </native>
+</config>

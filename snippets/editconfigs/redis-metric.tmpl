@@ -1,0 +1,26 @@
+<config xmlns:xc="urn:ietf:params:xml:ns:netconf:base:1.0">
+  <native xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-native" xmlns:ios-bgp="http://cisco.com/ns/yang/Cisco-IOS-XE-bgp">
+    <router>
+      <ios-bgp:bgp>
+        <ios-bgp:id>100</ios-bgp:id>
+        <ios-bgp:address-family>
+          <ios-bgp:with-vrf>
+            <ios-bgp:ipv4>
+              <ios-bgp:af-name>unicast</ios-bgp:af-name>
+              <ios-bgp:vrf>
+                <ios-bgp:name>Red</ios-bgp:name>
+                <ios-bgp:redistribute>
+                  <ios-bgp:static>
+                    <ios-bgp:ip xc:operation="replace"/>
+                    <ios-bgp:metric>4294967295</ios-bgp:metric>
+                    <ios-bgp:route-map>red</ios-bgp:route-map>
+                  </ios-bgp:static>
+                </ios-bgp:redistribute>
+              </ios-bgp:vrf>
+            </ios-bgp:ipv4>
+          </ios-bgp:with-vrf>
+        </ios-bgp:address-family>
+      </ios-bgp:bgp>
+    </router>
+  </native>
+</config>
