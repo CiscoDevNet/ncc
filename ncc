@@ -283,9 +283,13 @@ def get(m, filter=None, xpath=None, with_defaults=None):
 
 def report_unicode_decode_error(u):
     assert isinstance(u, UnicodeDecodeError)
+    start = u.start - 30
+    if start < 0: start = 0
+    end = u.start + 30
+    if end > len(u.object): end = len(u.object)
     print('UnicodeDecodeError exception:')
     print('    {}'.format(u))
-    print("Surrounding data (+/-30 bytes):")
+    print("Surrounding data (+/- up to 30 bytes):")
     print('    {}'.format(u.object[u.start-30:u.start+30]))
 
 
