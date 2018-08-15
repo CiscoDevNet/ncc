@@ -10,6 +10,7 @@ import re
 import shutil
 import sys
 import tempfile
+import time
 
 from argparse import ArgumentParser
 from git import Repo
@@ -227,20 +228,22 @@ def do_templates(m, t_list, default_op='merge', **kwargs):
         m.commit()
 
 
-def get_running_config(m, filter=None, xpath=None):
+def get_running_config(m, filter=None, xpath=None, with_defaults=None):
     """
     Get running config with a passed in filter. If both types of filter
     are passed in for some reason, the subtree filter "wins". When an
     xpath filter is passed in, it is assumed to be the fully created
     XML, and so is not passed to ncclient using the tuple syntax.
     """
+    c = None
     if filter and len(filter) > 0:
-        c = m.get_config(source='running', filter=('subtree', filter))
+        c = m.get_config(source='running', filter=('subtree', filter), with_defaults=with_defaults)
     elif xpath and len(xpath) > 0:
-        c = m.get_config(source='running', filter=xpath)
+        print(xpath)
+        c = m.get_config(source='running', filter=xpath, with_defaults=with_defaults)
     else:
-        c = m.get_config(source='running')
-    print(etree.tostring(c.data, pretty_print=True).decode('UTF-8'))
+        c = m.get_config(source='running', with_defaults=with_defaults)
+    return c
 
 
 def install_snippets(target_dir='.'):
@@ -259,22 +262,30 @@ def display_env_vars():
     print('export NCC_PASSWORD=vagrant  # --password\n')
 
 
-def get(m, filter=None, xpath=None):
+def get(m, filter=None, xpath=None, with_defaults=None):
     """
     Get state with a passed in filter. If both types of filter are
     passed in for some reason, the subtree filter "wins". When an
     xpath filter is passed in, it is assumed to be the fully created
     XML, and so is not passed to ncclient using the tuple syntax.
     """
+    c = None
     if filter and len(filter) > 0:
-        c = m.get(filter=('subtree', filter))
+        c = m.get(filter=('subtree', filter), with_defaults=with_defaults)
     elif xpath and len(xpath) > 0:
-        c = m.get(filter=xpath)
+        c = m.get(filter=xpath, with_defaults=with_defaults)
     else:
-        print("Need a filter for oper get!")
+        c = m.get(with_defaults=with_defaults)
         return
-    # Python3 will see this as a byte string
-    print(etree.tostring(c.data, pretty_print=True).decode('UTF-8'))
+    return c
+
+
+def report_unicode_decode_error(u):
+    assert isinstance(u, UnicodeDecodeError)
+    print('UnicodeDecodeError exception:')
+    print('    {}'.format(u))
+    print("Surrounding data (+/-30 bytes):")
+    print('    {}'.format(u.object[u.start-30:u.start+30]))
 
 
 if __name__ == '__main__':
@@ -306,9 +317,13 @@ if __name__ == '__main__':
                         "(default 60)")
     parser.add_argument('-v', '--verbose', action='store_true',
                         help="Exceedingly verbose logging to the console")
+    parser.add_argument('-t', '--time', action='store_true',
+                        help="Display the time an operation took, excluding connection setup and display")
     parser.add_argument('--default-op', type=str, default='merge',
                         help="The NETCONF default operation to use "
                         "(default 'merge')")
+    parser.add_argument('--with-defaults', type=str,
+                        help="RFC 6243 with-defaults value to use")
     parser.add_argument('--device-type', type=str, default=None,
                          help="The device type to pass to ncclient "
                          "(default: None)")
@@ -528,29 +543,61 @@ if __name__ == '__main__':
     #
     # TODO: get_running/get_oper are a bit samey, could be done better
     #
+    results = []
+    start_time = 0.0
+    end_time = 0.0
     if args.get_running:
-        if isinstance(args.filter, list):
-            for f in args.filter:
-                get_running_config(m, filter=f, xpath=None)
-        else:
-            get_running_config(m, xpath=args.xpath, filter=args.filter)
-
+        try:
+            start_time = time.time()
+            if isinstance(args.filter, list):
+                for f in args.filter:
+                    results.append(get_running_config(
+                        m,
+                        filter=f,
+                        xpath=None,
+                        with_defaults=args.with_defaults))
+            else:
+                results.append(get_running_config(
+                    m,
+                    xpath=args.xpath,
+                    filter=args.filter,
+                    with_defaults=args.with_defaults))
+            end_time = time.time()
+        except UnicodeDecodeError as u:
+            report_unicode_decode_error(u)
+            sys.exit(1)
     elif args.get_oper:
-        if isinstance(args.filter, list):
-            for f in args.filter:
-                get(m, filter=f, xpath=None)
-        else:
-            get(m, filter=args.filter, xpath=args.xpath)
-
+        try:
+            start_time = time.time()
+            if isinstance(args.filter, list):
+                for f in args.filter:
+                    results.append(get(
+                        m,
+                        filter=f,
+                        xpath=None,
+                        with_defaults=args.with_defaults))
+            else:
+                results.append(get(
+                    m,
+                    filter=args.filter,
+                    xpath=args.xpath,
+                    with_defaults=args.with_defaults))
+            end_time = time.time()
+        except UnicodeDecodeError as u:
+            report_unicode_decode_error(u)
+            sys.exit(1)
     elif args.do_edits:
         try:
+            start_time = time.time()
             do_templates(
                 m,
                 [named_templates.get_template('%s.tmpl' % t)
                   for t in args.do_edits],
                 default_op=args.default_op,
                 **kwargs)
+            end_time = time.time()
         except RPCError as e:
+            end_time = time.time()
             print("RPC Error")
             print("---------")
             print("severity: %s" % e.severity)
@@ -565,6 +612,20 @@ if __name__ == '__main__':
         models = query_model_support(m, args.is_supported)
         for model in models:
             print(model)
+
+    #
+    # display any get results
+    #
+    if len(results) > 0:
+        for c in results:
+            if c:
+                print(etree.tostring(c.data, pretty_print=True).decode('UTF-8'))
+
+    #
+    # dsplay operation time if requested
+    #
+    if args.time:
+        print("\nTotal Operation Time = {}".format(end_time-start_time))
 
     #
     # Orderly teardown of the netconf session.
