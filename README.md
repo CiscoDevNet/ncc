@@ -398,9 +398,9 @@ The jupyter notebook server should be run inside the same Python virtualenv as y
 Once Jupyter installed, the notebook server is run up thus:
 
 ```
-EINARNN-M-D10Q:ncc einarnn$ pwd
+$ pwd
 /opt/git-repos/ncc
-EINARNN-M-D10Q:ncc einarnn$ . v/bin/activate
+$ . v/bin/activate
 (v) EINARNN-M-D10Q:ncc einarnn$ jupyter notebook
 [I 16:39:38.230 NotebookApp] The port 8888 is already in use, trying another port.
 [I 16:39:38.240 NotebookApp] Serving notebooks from local directory: /opt/git-repos/ncc

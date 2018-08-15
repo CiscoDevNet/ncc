@@ -196,7 +196,6 @@ def cook_xpath(xpath):
         else:
             ns_set.add(prefix)
     namespaces = ' '.join(['xmlns:%s="%s"' % (p, ns_dict[p]) for p in ns_set])
-    xpath = xpath.replace('"', "'")
     return filter_template % (namespaces, xpath)
 
 
@@ -256,10 +255,12 @@ def install_snippets(target_dir='.'):
 
 
 def display_env_vars():
-    print('export NCC_HOST=127.0.0.1    # --host')
-    print('export NCC_PORT=2223         # --port')
-    print('export NCC_USERNAME=vagrant  # --username')
-    print('export NCC_PASSWORD=vagrant  # --password\n')
+    print('A user may set the following environment variables for use '
+          '(with examples):\n')
+    print('export NCC_HOST=127.0.0.1')
+    print('export NCC_PORT=2223')
+    print('export NCC_USERNAME=vagrant')
+    print('export NCC_PASSWORD=vagrant\n')
 
 
 def get(m, filter=None, xpath=None, with_defaults=None):
@@ -491,7 +492,7 @@ if __name__ == '__main__':
                         ns_dict[prefix] = namespace
     if args.xpath:
         args.xpath = cook_xpath(args.xpath)
-    
+
     #
     # This populates the filter if it's a canned filter.
     #

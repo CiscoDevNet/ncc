@@ -42,6 +42,9 @@ if __name__ == '__main__':
                         help="Delete the established subscription after N seconds")
     parser.add_argument('-x', '--xpaths', type=str, nargs='+', required=True,
                         help="List of xpaths to subscribe to, one or more")
+    parser.add_argument('--streamns', type=str,
+                        help="Namespace for a custom stream identity, "
+                        "e.g. urn:cisco:params:xml:ns:yang:cisco-xe-ietf-yang-push-ext")
     parser.add_argument('--callback', type=str,
                         help="Module that a callback is defined in")
     
@@ -50,7 +53,10 @@ if __name__ == '__main__':
                    help="Period in centiseconds for periodic subscription")
     g.add_argument('--dampening-period', type=int,
                    help="Dampening period in centiseconds for on-change subscription")
-
+    g.add_argument('--streamident', type=str,
+                   help="Custom stream identifier (e.g. yang-notif-native)")
+    
+    
     args = parser.parse_args()
 
     if args.verbose:
@@ -130,7 +136,9 @@ if __name__ == '__main__':
             selected_errback,
             xpath=xpath,
             period=args.period,
-            dampening_period=args.dampening_period)
+            dampening_period=args.dampening_period,
+            streamident=args.streamident,
+            streamns=args.streamns)
         print('Subscription Result : %s' % s.subscription_result)
         if s.subscription_result.endswith('ok'):
             print('Subscription Id     : %d' % s.subscription_id)
