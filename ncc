@@ -63,6 +63,11 @@ CANDIDATE = False
 #
 NCC_DIR, _ = os.path.split(os.path.realpath(__file__))
 
+#
+# default bytes to display when UnicodeDecodeError exceptions are caught
+#
+UNICODE_ERRB = 30
+
 
 def strip_leading_trailing_ws(to_strip):
     s1 = re.sub(r"^\s*", "", to_strip)
@@ -255,12 +260,10 @@ def install_snippets(target_dir='.'):
 
 
 def display_env_vars():
-    print('A user may set the following environment variables for use '
-          '(with examples):\n')
     print('export NCC_HOST=127.0.0.1')
     print('export NCC_PORT=2223')
     print('export NCC_USERNAME=vagrant')
-    print('export NCC_PASSWORD=vagrant\n')
+    print('export NCC_PASSWORD=vagrant')
 
 
 def get(m, filter=None, xpath=None, with_defaults=None):
@@ -283,10 +286,14 @@ def get(m, filter=None, xpath=None, with_defaults=None):
 
 def report_unicode_decode_error(u):
     assert isinstance(u, UnicodeDecodeError)
+    start = u.start - UNICODE_ERRB
+    if start < 0: start = 0
+    end = u.start + UNICODE_ERRB
+    if end > len(u.object): end = len(u.object)
     print('UnicodeDecodeError exception:')
     print('    {}'.format(u))
-    print("Surrounding data (+/-30 bytes):")
-    print('    {}'.format(u.object[u.start-30:u.start+30]))
+    print('Surrounding data (+/- up to {} bytes):'.format(UNICODE_ERRB))
+    print('    {}'.format(u.object[start:end]))
 
 
 if __name__ == '__main__':
@@ -295,7 +302,7 @@ if __name__ == '__main__':
         description='Select your NETCONF operation and parameters:')
 
     #
-    # NETCONF session parameters
+    # NETCONF session parameters and other values
     #
     parser.add_argument('--host', type=str,
                         default=os.environ.get('NCC_HOST', '127.0.0.1'),
@@ -328,6 +335,11 @@ if __name__ == '__main__':
     parser.add_argument('--device-type', type=str, default=None,
                          help="The device type to pass to ncclient "
                          "(default: None)")
+    parser.add_argument('--unicode-error-bytes', type=int,
+                        default=UNICODE_ERRB,
+                        help="Specify number of +/- bytes to display for  "
+                        "UnicodeDecodeError exceptions "
+                        "(default {})".format(UNICODE_ERRB))
 
     #
     # Where we want to source snippets from
@@ -422,6 +434,11 @@ if __name__ == '__main__':
         sys.exit(0)
 
     #
+    # setup unicode decode error exception +/- bytes
+    #
+    UNICODE_ERRB = args.unicode_error_bytes
+
+    #
     # Setup the templates for use.
     #
     named_filters = Environment(loader=FileSystemLoader(
@@ -454,7 +471,6 @@ if __name__ == '__main__':
     #
     # set up various keyword arguments that have specific arguments
     #
-
     kwargs = None
     if args.params:
         kwargs = json.loads(args.params)
