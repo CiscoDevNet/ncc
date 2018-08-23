@@ -46,7 +46,7 @@ def get_schema_with_depends(mgr, schema, version, dest_dir="."):
             c = mgr.get_schema(s, version=v)
             ctx = pyang.Context(repo)
             ctx.add_module(s, c.data)
-            for ((m, r), module) in ctx.modules.iteritems():
+            for ((m, r), module) in ctx.modules.items():
                 if m == s:
                     dest_file = '%s/%s@%s.yang' % (dest_dir, m, r)
                     if not os.path.isfile(dest_file):
