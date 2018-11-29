@@ -59,8 +59,8 @@ if __name__ == '__main__':
     #
     s = m.create_subscription(stream_name=args.stream)
     while True:
-        print('Tick, tock...')
-        n = m.take_notification(timeout=5)
+        n = m.take_notification()
         if n:
-            print(etree.tostring(n.notification_ele, pretty_print=True))
+            print('----')
+            print(etree.tostring(n.notification_ele, pretty_print=True).decode())
 
