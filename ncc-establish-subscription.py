@@ -61,8 +61,7 @@ if __name__ == '__main__':
 
     if args.verbose:
         handler = logging.StreamHandler()
-        # for l in ['ncclient.transport.ssh', 'ncclient.transport.session', 'ncclient.operations.rpc']:
-        for l in ['ncclient.transport.session', 'ncclient.operations.rpc']:
+        for l in ['ncclient.transport.ssh', 'ncclient.transport.session', 'ncclient.operations.rpc']:
             logger = logging.getLogger(l)
             logger.addHandler(handler)
             logger.setLevel(logging.DEBUG)
