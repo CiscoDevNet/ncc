@@ -13,16 +13,23 @@ from ncclient import manager
 from ncclient.operations.rpc import RPCError
 
 
+#
+# local logger
+#
+logger = logging.getLogger(__name__)
+
+
 def get_schema(m, schema, version):
     '''
     Simple schema download to stdout.
     '''
     try:
+        logger.debug('Retrieving %s', schema)
         c = m.get_schema(schema, version=version)
         print(c.data)
     except RPCError as e:
-        print >>sys.stderr, 'Failed to get schema {} || RPCError: severity={}, tag={}, message={}'.format(
-            schema, e.severity, e.tag, e.message)
+        print('Failed to get schema {} || RPCError: severity={}, tag={}, message={}'.format(
+            schema, e.severity, e.tag, e.message))
 
 
 def get_schema_with_depends(mgr, schema, version, dest_dir="."):
@@ -94,12 +101,16 @@ if __name__ == '__main__':
     #
     if args.verbose:
         handler = logging.StreamHandler()
+        handler.setFormatter(
+            logging.Formatter('%(asctime)s:%(name)s:%(levelname)s:%(message)s'))
+        logger.setHandler(handler)
+        logger.setLevel(logging.DEBUG)
         for l in ['ncclient.transport.session',
                   # 'ncclient.transport.ssh',
                   'ncclient.operations.rpc']:
-            logger = logging.getLogger(l)
-            logger.addHandler(handler)
-            logger.setLevel(logging.DEBUG)
+            ll = logging.getLogger(l)
+            ll.addHandler(handler)
+            ll.setLevel(logging.DEBUG)
 
     #
     # connect to the device and either get schema with dependencies,
