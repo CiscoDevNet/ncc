@@ -243,7 +243,6 @@ def get_running_config(m, filter=None, xpath=None, with_defaults=None):
     if filter and len(filter) > 0:
         c = m.get_config(source='running', filter=('subtree', filter), with_defaults=with_defaults)
     elif xpath and len(xpath) > 0:
-        print(xpath)
         c = m.get_config(source='running', filter=xpath, with_defaults=with_defaults)
     else:
         c = m.get_config(source='running', with_defaults=with_defaults)
