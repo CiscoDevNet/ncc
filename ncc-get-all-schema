@@ -108,15 +108,17 @@ if __name__ == '__main__':
 
     def unknown_host_cb(host, fingerprint):
         return True
-    mgr = manager.connect(host=args.host,
-                          port=args.port,
-                          username=args.username,
-                          password=args.password,
-                          timeout=args.timeout,
-                          allow_agent=False,
-                          look_for_keys=False,
-                          hostkey_verify=False,
-                          unknown_host_cb=unknown_host_cb)
+    def get_manager():
+        return manager.connect(host=args.host,
+                               port=args.port,
+                               username=args.username,
+                               password=args.password,
+                               timeout=args.timeout,
+                               allow_agent=False,
+                               look_for_keys=False,
+                               hostkey_verify=False,
+                               unknown_host_cb=unknown_host_cb)
+    mgr = get_manager()
 
     #
     # retrieve the schemas datatree and extract all the schema
@@ -166,6 +168,11 @@ if __name__ == '__main__':
             failed_download.add(str(f))
 
     #
+    # end of main download phase, so close the session for now
+    #
+    mgr.close_session()
+
+    #
     # Now let's check all the schema that we downloaded (from this run
     # and any other) and parse them with pyang to extract any imports
     # or includes and verify that they were on the advertised schema
@@ -205,6 +212,7 @@ if __name__ == '__main__':
         #
         # try to download the not-advertised schemas
         #
+        mgr = get_manager()
         for m in not_advertised:
             try:
                 c = mgr.get_schema(m)
@@ -212,6 +220,7 @@ if __name__ == '__main__':
                     yang.write(c.data.encode('UTF-8'))
             except RPCError as e:
                 failed_download.add(str(m))
+        mgr.close_session()
 
     #
     # List out the schema that are imported or included and NOT
