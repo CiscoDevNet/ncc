@@ -53,8 +53,8 @@ def get_schema(m, schema_list, output_dir, start_after=None):
         try:
             logger.debug('Retrieving %s', s)
             c = m.get_schema(s)
-            with open(output_dir + '/' + s + '.yang', 'w') as yang:
-                yang.write(c.data)
+            with open(output_dir + '/' + s + '.yang', 'wb') as yang:
+                yang.write(c.data.encode('UTF-8'))
         except RPCError as e:
             logger.debug('Failed to get %s', s)
             failed_download.append(s)
@@ -178,8 +178,8 @@ if __name__ == '__main__':
     yangfiles = [f for f in listdir(args.output_dir) if isfile(join(args.output_dir, f))]
     for fname in yangfiles:
         ctx = pyang.Context(repos)
-        fd = open(args.output_dir + '/' + fname, 'r')
-        text = fd.read()
+        fd = open(args.output_dir + '/' + fname, 'rb')
+        text = fd.read().decode('UTF-8')
         ctx.add_module(fname, text)
         this_module = basename(fname).split(".")[0]
         for ((m, r), module) in ctx.modules.items():
@@ -208,8 +208,8 @@ if __name__ == '__main__':
         for m in not_advertised:
             try:
                 c = mgr.get_schema(m)
-                with open(args.output_dir + '/' + m + '.yang', 'w') as yang:
-                    yang.write(c.data)
+                with open(args.output_dir + '/' + m + '.yang', 'wb') as yang:
+                    yang.write(c.data.encode('UTF-8'))
             except RPCError as e:
                 failed_download.add(str(m))
 

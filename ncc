@@ -89,9 +89,9 @@ def display_capabilities(m):
     # local function to pull out NS & module
     def append_ns_and_module(c, module_list):
         re_model = '^([^\?]+)\?module=([^&]+)&?'
-        m = re.search(re_model, c)
-        if m:
-            module_list.append('%s (%s)' % (m.group(2), m.group(1)))
+        match = re.search(re_model, c)
+        if match:
+            module_list.append('%s (%s)' % (match.group(2), match.group(1)))
 
     # pre-process capabilities, split into various categories
     ns_to_list = [
