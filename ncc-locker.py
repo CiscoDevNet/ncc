@@ -47,7 +47,7 @@ if __name__ == '__main__':
                         help="Number of retries, 0 is infinite")
     parser.add_argument('--interval', type=float, default=1.0,
                         help="Time between retries in seconds (float)")
-    parser.add_argument('--context', action='store_true', default=False
+    parser.add_argument('--context', action='store_true', default=False,
                         help="Use context-style locking")
 
     args = parser.parse_args()
