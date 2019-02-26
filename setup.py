@@ -26,7 +26,8 @@ setup(
         'ncc-capture-schema',
         'ncc-get-all-schema',
         'ncc-get-schema',
-        'ncc'
+        'ncc-yang-push',
+        'ncc',
     ],
     author=__author__,
     author_email=__author_email__,
@@ -36,7 +37,7 @@ setup(
     install_requires=[
         'Jinja2>=2.8',
         'pyang>=1.7.3',
-        'ncclient>=0.5.3',
+        'ncclient>=0.6.3',
         'GitPython>=2.1.3',
         'beautifulsoup4>=4.6.0',
         'netmiko>=2.0.2'
