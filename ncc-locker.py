@@ -36,6 +36,12 @@ if __name__ == '__main__':
     parser.add_argument('-v', '--verbose', action='store_true',
                         help="Do I really need to explain?")
 
+    #
+    # alternate operations
+    #
+    parser.add_argument('--unlock', action='store_true',
+                        help="Instead of locking, unlock the target datastore")
+    
     # other options
     parser.add_argument('--target', type=str, default='running',
                         help="Datastore to lock")
@@ -72,6 +78,16 @@ if __name__ == '__main__':
                          look_for_keys=False,
                          hostkey_verify=False,
                          unknown_host_cb=unknown_host_cb)
+
+    #
+    # for testing, just try and unlock the target
+    #
+    if args.unlock:
+        m.unlock(target=args.target)
+        print('Unlocked {}'.format(args.target))
+        m.close_session()
+        sys.exit(0)
+    
     #
     # lock and unlock
     #
