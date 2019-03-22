@@ -32,6 +32,7 @@ schemas_filter = '''<netconf-state xmlns="urn:ietf:params:xml:ns:yang:ietf-netco
 
 
 def get(m, filter=None):
+    logger.debug('Getting %s', str(filter))
     if filter and len(filter) > 0:
         c = m.get(filter=('subtree', filter)).data
     else:
@@ -97,10 +98,6 @@ if __name__ == '__main__':
             logging.Formatter('%(asctime)s:%(name)s:%(levelname)s:%(message)s'))
         logger.addHandler(handler)
         logger.setLevel(logging.DEBUG)
-        for l in ['ncclient.transport.ssh', 'ncclient.transport.ssession', 'ncclient.operations.rpc']:
-            ll = logging.getLogger(l)
-            ll.addHandler(handler)
-            ll.setLevel(logging.DEBUG)
 
     if not args.output_dir:
         # default the output to got to cwd
@@ -109,6 +106,7 @@ if __name__ == '__main__':
     def unknown_host_cb(host, fingerprint):
         return True
     def get_manager():
+        logger.debug('Connecting to netconf server')
         return manager.connect(host=args.host,
                                port=args.port,
                                username=args.username,
@@ -145,6 +143,7 @@ if __name__ == '__main__':
                 d = deviations.group(1)
                 for dfn in d.split(','):
                     if dfn not in schema_list:
+                        logger.debug('Deviation %s not in schema list', dfn)
                         not_in_schemas.add(dfn)
     if len(not_in_schemas) > 0:
         print('The following models are advertised in capabilities but are not in schemas tree:')
@@ -182,9 +181,10 @@ if __name__ == '__main__':
     #
     imports_and_includes = set()
     repos = pyang.FileRepository(args.output_dir)
+    ctx = pyang.Context(repos)
     yangfiles = [f for f in listdir(args.output_dir) if isfile(join(args.output_dir, f))]
-    for fname in yangfiles:
-        ctx = pyang.Context(repos)
+    for fname in sorted(yangfiles):
+        logger.debug('Parsing %s', fname)
         fd = open(args.output_dir + '/' + fname, 'rb')
         text = fd.read().decode('UTF-8')
         ctx.add_module(fname, text)
@@ -199,7 +199,7 @@ if __name__ == '__main__':
     # Verify that all imports and includes appeared in the advertised
     # schema
     #
-    not_advertised = [i for i in imports_and_includes if i not in schema_list]
+    not_advertised = [str(i) for i in imports_and_includes if i not in schema_list]
     if len(not_advertised) > 0:
 
         #
@@ -214,6 +214,7 @@ if __name__ == '__main__':
         #
         mgr = get_manager()
         for m in not_advertised:
+            logger.debug('Trying to get module %s, which is included or import, bit not advertised', m)
             try:
                 c = mgr.get_schema(m)
                 with open(args.output_dir + '/' + m + '.yang', 'wb') as yang:
