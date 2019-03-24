@@ -180,7 +180,7 @@ if __name__ == '__main__':
     # TODO: cater for explicitly revisioned imports & includes
     #
     imports_and_includes = set()
-    repos = pyang.FileRepository(args.output_dir)
+    repos = pyang.FileRepository(args.output_dir, use_env=False)
     ctx = pyang.Context(repos)
     yangfiles = [f for f in listdir(args.output_dir) if isfile(join(args.output_dir, f))]
     for fname in sorted(yangfiles):
