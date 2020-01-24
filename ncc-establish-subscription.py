@@ -61,8 +61,8 @@ if __name__ == '__main__':
 
     if args.verbose:
         handler = logging.StreamHandler()
-        # for l in ['ncclient.transport.ssh', 'ncclient.transport.session', 'ncclient.operations.rpc']:
-        for l in ['ncclient.transport.session', 'ncclient.operations.rpc']:
+        # for l in ['ncclient.transport.session', 'ncclient.operations.rpc']:
+        for l in ['ncclient.transport.ssh', 'ncclient.transport.session', 'ncclient.operations.rpc']:
             logger = logging.getLogger(l)
             logger.addHandler(handler)
             logger.setLevel(logging.DEBUG)
@@ -79,6 +79,7 @@ if __name__ == '__main__':
                          allow_agent=False,
                          look_for_keys=False,
                          hostkey_verify=False,
+                         device_params={'name':'iosxe'},
                          unknown_host_cb=unknown_host_cb)
 
     #
