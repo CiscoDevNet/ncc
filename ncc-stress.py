@@ -21,6 +21,7 @@ from jinja2 import meta
 from jinja2.exceptions import UndefinedError
 from lxml import etree
 from ncclient import manager
+from ncclient.xml_ import to_ele
 from ncclient.operations.rpc import RPCError
 
 #
@@ -63,11 +64,6 @@ CANDIDATE = False
 #
 NCC_DIR, _ = os.path.split(os.path.realpath(__file__))
 
-#
-# default bytes to display when UnicodeDecodeError exceptions are caught
-#
-UNICODE_ERRB = 30
-
 
 def strip_leading_trailing_ws(to_strip):
     s1 = re.sub(r"^\s*", "", to_strip)
@@ -89,9 +85,9 @@ def display_capabilities(m):
     # local function to pull out NS & module
     def append_ns_and_module(c, module_list):
         re_model = '^([^\?]+)\?module=([^&]+)&?'
-        match = re.search(re_model, c)
-        if match:
-            module_list.append('%s (%s)' % (match.group(2), match.group(1)))
+        m = re.search(re_model, c)
+        if m:
+            module_list.append('%s (%s)' % (m.group(2), m.group(1)))
 
     # pre-process capabilities, split into various categories
     ns_to_list = [
@@ -201,15 +197,18 @@ def cook_xpath(xpath):
         else:
             ns_set.add(prefix)
     namespaces = ' '.join(['xmlns:%s="%s"' % (p, ns_dict[p]) for p in ns_set])
+    xpath = xpath.replace('"', "'")
     return filter_template % (namespaces, xpath)
 
 
-def do_templates(m, t_list, default_op='merge', **kwargs):
+def do_templates(m, t_list, default_op='merge', gap=None, **kwargs):
     """Execute a list of templates, using the kwargs passed in to
     complete the rendering.
     """
 
     for tmpl in t_list:
+        if gap:
+            time.sleep(gap)
         try:
             data = tmpl.render(kwargs)
         except UndefinedError as e:
@@ -232,21 +231,20 @@ def do_templates(m, t_list, default_op='merge', **kwargs):
         m.commit()
 
 
-def get_running_config(m, filter=None, xpath=None, with_defaults=None):
+def get_running_config(m, filter=None, xpath=None):
     """
     Get running config with a passed in filter. If both types of filter
     are passed in for some reason, the subtree filter "wins". When an
     xpath filter is passed in, it is assumed to be the fully created
     XML, and so is not passed to ncclient using the tuple syntax.
     """
-    c = None
     if filter and len(filter) > 0:
-        c = m.get_config(source='running', filter=('subtree', filter), with_defaults=with_defaults)
+        c = m.get_config(source='running', filter=('subtree', filter))
     elif xpath and len(xpath) > 0:
-        c = m.get_config(source='running', filter=xpath, with_defaults=with_defaults)
+        c = m.get_config(source='running', filter=xpath)
     else:
-        c = m.get_config(source='running', with_defaults=with_defaults)
-    return c
+        c = m.get_config(source='running')
+    print(etree.tostring(c.data, pretty_print=True).decode('UTF-8'))
 
 
 def install_snippets(target_dir='.'):
@@ -259,40 +257,28 @@ def install_snippets(target_dir='.'):
 
 
 def display_env_vars():
-    print('export NCC_HOST=127.0.0.1')
-    print('export NCC_PORT=2223')
-    print('export NCC_USERNAME=vagrant')
-    print('export NCC_PASSWORD=vagrant')
+    print('export NCC_HOST=127.0.0.1    # --host')
+    print('export NCC_PORT=2223         # --port')
+    print('export NCC_USERNAME=vagrant  # --username')
+    print('export NCC_PASSWORD=vagrant  # --password\n')
 
 
-def get(m, filter=None, xpath=None, with_defaults=None):
+def get(m, filter=None, xpath=None):
     """
     Get state with a passed in filter. If both types of filter are
     passed in for some reason, the subtree filter "wins". When an
     xpath filter is passed in, it is assumed to be the fully created
     XML, and so is not passed to ncclient using the tuple syntax.
     """
-    c = None
     if filter and len(filter) > 0:
-        c = m.get(filter=('subtree', filter), with_defaults=with_defaults)
+        c = m.get(filter=('subtree', filter))
     elif xpath and len(xpath) > 0:
-        c = m.get(filter=xpath, with_defaults=with_defaults)
+        c = m.get(filter=xpath)
     else:
-        c = m.get(with_defaults=with_defaults)
+        print("Need a filter for oper get!")
         return
-    return c
-
-
-def report_unicode_decode_error(u):
-    assert isinstance(u, UnicodeDecodeError)
-    start = u.start - UNICODE_ERRB
-    if start < 0: start = 0
-    end = u.start + UNICODE_ERRB
-    if end > len(u.object): end = len(u.object)
-    print('UnicodeDecodeError exception:')
-    print('    {}'.format(u))
-    print('Surrounding data (+/- up to {} bytes):'.format(UNICODE_ERRB))
-    print('    {}'.format(u.object[start:end]))
+    # Python3 will see this as a byte string
+    print(etree.tostring(c.data, pretty_print=True).decode('UTF-8'))
 
 
 if __name__ == '__main__':
@@ -301,7 +287,7 @@ if __name__ == '__main__':
         description='Select your NETCONF operation and parameters:')
 
     #
-    # NETCONF session parameters and other values
+    # NETCONF session parameters
     #
     parser.add_argument('--host', type=str,
                         default=os.environ.get('NCC_HOST', '127.0.0.1'),
@@ -324,21 +310,12 @@ if __name__ == '__main__':
                         "(default 60)")
     parser.add_argument('-v', '--verbose', action='store_true',
                         help="Exceedingly verbose logging to the console")
-    parser.add_argument('-t', '--time', action='store_true',
-                        help="Display the time an operation took, excluding connection setup and display")
     parser.add_argument('--default-op', type=str, default='merge',
                         help="The NETCONF default operation to use "
                         "(default 'merge')")
-    parser.add_argument('--with-defaults', type=str,
-                        help="RFC 6243 with-defaults value to use")
     parser.add_argument('--device-type', type=str, default=None,
                          help="The device type to pass to ncclient "
                          "(default: None)")
-    parser.add_argument('--unicode-error-bytes', type=int,
-                        default=UNICODE_ERRB,
-                        help="Specify number of +/- bytes to display for  "
-                        "UnicodeDecodeError exceptions "
-                        "(default {})".format(UNICODE_ERRB))
 
     #
     # Where we want to source snippets from
@@ -357,6 +334,15 @@ if __name__ == '__main__':
                         "files with bindings. @filename will read a JSON file "
                         "and update the set of namespace bindings, silently "
                         "overwriting with any redefinitions.")
+
+    #
+    # add a stress test parameter to loop over things for a long time,
+    # with an inter-operation gap as well
+    #
+    parser.add_argument('--stress', type=int, default=1,
+                        help="Repeat selected operation")
+    parser.add_argument('--gap', type=float, default=0.0,
+                        help="Gap between operations")
 
     #
     # Various operation parameters. These will be put into a kwargs
@@ -412,6 +398,8 @@ if __name__ == '__main__':
                    "support, ALL operations will be attempted.")
     g.add_argument('-w', '--where', action='store_true',
                    help="Print where script is and exit")
+    g.add_argument('--save-config', action='store_true',
+                   help="Invoke the cisco-ia module's save-config RPC")
 
     #
     # Finally, parse the arguments!
@@ -431,11 +419,6 @@ if __name__ == '__main__':
     if args.install_snippets:
         install_snippets()
         sys.exit(0)
-
-    #
-    # setup unicode decode error exception +/- bytes
-    #
-    UNICODE_ERRB = args.unicode_error_bytes
 
     #
     # Setup the templates for use.
@@ -470,6 +453,7 @@ if __name__ == '__main__':
     #
     # set up various keyword arguments that have specific arguments
     #
+
     kwargs = None
     if args.params:
         kwargs = json.loads(args.params)
@@ -507,7 +491,7 @@ if __name__ == '__main__':
                         ns_dict[prefix] = namespace
     if args.xpath:
         args.xpath = cook_xpath(args.xpath)
-
+    
     #
     # This populates the filter if it's a canned filter.
     #
@@ -559,69 +543,49 @@ if __name__ == '__main__':
     #
     # TODO: get_running/get_oper are a bit samey, could be done better
     #
-    results = []
-    start_time = 0.0
-    end_time = 0.0
-    if args.get_running:
-        try:
-            start_time = time.time()
-            if isinstance(args.filter, list):
-                for f in args.filter:
-                    results.append(get_running_config(
-                        m,
-                        filter=f,
-                        xpath=None,
-                        with_defaults=args.with_defaults))
-            else:
-                results.append(get_running_config(
-                    m,
-                    xpath=args.xpath,
-                    filter=args.filter,
-                    with_defaults=args.with_defaults))
-            end_time = time.time()
-        except UnicodeDecodeError as u:
-            report_unicode_decode_error(u)
-            sys.exit(1)
+    if args.save_config:
+        save_config_rpc =  '''
+          <copy xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-rpc">
+            <_source>running-config</_source>
+            <_destination>startup-config</_destination>
+          </copy>'''
+        result = m.dispatch(to_ele(save_config_rpc))
+        parsed = etree.fromstring(result._raw.encode())
+        print(parsed.xpath('//*[local-name()="result"]')[0].text)
+    elif args.get_running:
+        if isinstance(args.filter, list):
+            for f in args.filter:
+                get_running_config(m, filter=f, xpath=None)
+        else:
+            get_running_config(m, xpath=args.xpath, filter=args.filter)
+
     elif args.get_oper:
-        try:
-            start_time = time.time()
-            if isinstance(args.filter, list):
-                for f in args.filter:
-                    results.append(get(
-                        m,
-                        filter=f,
-                        xpath=None,
-                        with_defaults=args.with_defaults))
-            else:
-                results.append(get(
-                    m,
-                    filter=args.filter,
-                    xpath=args.xpath,
-                    with_defaults=args.with_defaults))
-            end_time = time.time()
-        except UnicodeDecodeError as u:
-            report_unicode_decode_error(u)
-            sys.exit(1)
+        if isinstance(args.filter, list):
+            for f in args.filter:
+                get(m, filter=f, xpath=None)
+        else:
+            get(m, filter=args.filter, xpath=args.xpath)
+
     elif args.do_edits:
-        try:
-            start_time = time.time()
-            do_templates(
-                m,
-                [named_templates.get_template('%s.tmpl' % t)
-                  for t in args.do_edits],
-                default_op=args.default_op,
-                **kwargs)
-            end_time = time.time()
-        except RPCError as e:
-            end_time = time.time()
-            print("RPC Error")
-            print("---------")
-            print("severity: %s" % e.severity)
-            print("     tag: %s" % e.tag)
-            if e.path and len(e.path) > 0:
-                print("    path: %s" % strip_leading_trailing_ws(e.path))
-            print(" message: %s" % e.message)
-            print("    type: %s" % e.type)
+        for i in range(0, args.stress):
+            
+            try:
+                do_templates(
+                    m,
+                    [named_templates.get_template('%s.tmpl' % t)
+                     for t in args.do_edits],
+                    default_op=args.default_op,
+                    gap=args.gap,
+                    **kwargs)
+            except RPCError as e:
+                print("RPC Error")
+                print("---------")
+                print("severity: %s" % e.severity)
+                print("     tag: %s" % e.tag)
+                if e.path and len(e.path) > 0:
+                    print("    path: %s" % strip_leading_trailing_ws(e.path))
+                    print(" message: %s" % e.message)
+                    print("    type: %s" % e.type)
     elif args.capabilities:
         display_capabilities(m)
     elif args.is_supported:
@@ -630,22 +594,9 @@ if __name__ == '__main__':
             print(model)
 
     #
-    # display any get results
-    #
-    if len(results) > 0:
-        for c in results:
-            if c:
-                print(etree.tostring(c.data, pretty_print=True).decode('UTF-8'))
-
-    #
-    # dsplay operation time if requested
-    #
-    if args.time:
-        print("\nTotal Operation Time = {}".format(end_time-start_time))
-
-    #
     # Orderly teardown of the netconf session.
     # Ignore Value error sometimes returned in cleanup
+    #
     try:
         m.close_session()
     except ValueError:

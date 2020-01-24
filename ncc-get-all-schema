@@ -14,6 +14,12 @@ import pyang
 
 
 #
+# local logger
+#
+logger = logging.getLogger(__name__)
+
+
+#
 # The get filter we need to retrieve the schemas a device claims to have
 #
 schemas_filter = '''<netconf-state xmlns="urn:ietf:params:xml:ns:yang:ietf-netconf-monitoring">
@@ -26,6 +32,7 @@ schemas_filter = '''<netconf-state xmlns="urn:ietf:params:xml:ns:yang:ietf-netco
 
 
 def get(m, filter=None):
+    logger.debug('Getting %s', str(filter))
     if filter and len(filter) > 0:
         c = m.get(filter=('subtree', filter)).data
     else:
@@ -45,10 +52,12 @@ def get_schema(m, schema_list, output_dir, start_after=None):
             else:
                 continue
         try:
+            logger.debug('Retrieving %s', s)
             c = m.get_schema(s)
-            with open(output_dir + '/' + s + '.yang', 'w') as yang:
-                yang.write(c.data)
+            with open(output_dir + '/' + s + '.yang', 'wb') as yang:
+                yang.write(c.data.encode('UTF-8'))
         except RPCError as e:
+            logger.debug('Failed to get %s', s)
             failed_download.append(s)
     return failed_download
 
@@ -85,10 +94,10 @@ if __name__ == '__main__':
     #
     if args.verbose:
         handler = logging.StreamHandler()
-        for l in ['ncclient.transport.ssh', 'ncclient.transport.ssession', 'ncclient.operations.rpc']:
-            logger = logging.getLogger(l)
-            logger.addHandler(handler)
-            logger.setLevel(logging.DEBUG)
+        handler.setFormatter(
+            logging.Formatter('%(asctime)s:%(name)s:%(levelname)s:%(message)s'))
+        logger.addHandler(handler)
+        logger.setLevel(logging.DEBUG)
 
     if not args.output_dir:
         # default the output to got to cwd
@@ -96,15 +105,18 @@ if __name__ == '__main__':
 
     def unknown_host_cb(host, fingerprint):
         return True
-    mgr = manager.connect(host=args.host,
-                          port=args.port,
-                          username=args.username,
-                          password=args.password,
-                          timeout=args.timeout,
-                          allow_agent=False,
-                          look_for_keys=False,
-                          hostkey_verify=False,
-                          unknown_host_cb=unknown_host_cb)
+    def get_manager():
+        logger.debug('Connecting to netconf server')
+        return manager.connect(host=args.host,
+                               port=args.port,
+                               username=args.username,
+                               password=args.password,
+                               timeout=args.timeout,
+                               allow_agent=False,
+                               look_for_keys=False,
+                               hostkey_verify=False,
+                               unknown_host_cb=unknown_host_cb)
+    mgr = get_manager()
 
     #
     # retrieve the schemas datatree and extract all the schema
@@ -131,6 +143,7 @@ if __name__ == '__main__':
                 d = deviations.group(1)
                 for dfn in d.split(','):
                     if dfn not in schema_list:
+                        logger.debug('Deviation %s not in schema list', dfn)
                         not_in_schemas.add(dfn)
     if len(not_in_schemas) > 0:
         print('The following models are advertised in capabilities but are not in schemas tree:')
@@ -154,6 +167,11 @@ if __name__ == '__main__':
             failed_download.add(str(f))
 
     #
+    # end of main download phase, so close the session for now
+    #
+    mgr.close_session()
+
+    #
     # Now let's check all the schema that we downloaded (from this run
     # and any other) and parse them with pyang to extract any imports
     # or includes and verify that they were on the advertised schema
@@ -162,12 +180,13 @@ if __name__ == '__main__':
     # TODO: cater for explicitly revisioned imports & includes
     #
     imports_and_includes = set()
-    repos = pyang.FileRepository(args.output_dir)
+    repos = pyang.FileRepository(args.output_dir, use_env=False)
+    ctx = pyang.Context(repos)
     yangfiles = [f for f in listdir(args.output_dir) if isfile(join(args.output_dir, f))]
-    for fname in yangfiles:
-        ctx = pyang.Context(repos)
-        fd = open(args.output_dir + '/' + fname, 'r')
-        text = fd.read()
+    for fname in sorted(yangfiles):
+        logger.debug('Parsing %s', fname)
+        fd = open(args.output_dir + '/' + fname, 'rb')
+        text = fd.read().decode('UTF-8')
         ctx.add_module(fname, text)
         this_module = basename(fname).split(".")[0]
         for ((m, r), module) in ctx.modules.items():
@@ -180,7 +199,7 @@ if __name__ == '__main__':
     # Verify that all imports and includes appeared in the advertised
     # schema
     #
-    not_advertised = [i for i in imports_and_includes if i not in schema_list]
+    not_advertised = [str(i) for i in imports_and_includes if i not in schema_list]
     if len(not_advertised) > 0:
 
         #
@@ -193,13 +212,16 @@ if __name__ == '__main__':
         #
         # try to download the not-advertised schemas
         #
+        mgr = get_manager()
         for m in not_advertised:
+            logger.debug('Trying to get module %s, which is included or import, bit not advertised', m)
             try:
                 c = mgr.get_schema(m)
-                with open(args.output_dir + '/' + m + '.yang', 'w') as yang:
-                    yang.write(c.data)
+                with open(args.output_dir + '/' + m + '.yang', 'wb') as yang:
+                    yang.write(c.data.encode('UTF-8'))
             except RPCError as e:
                 failed_download.add(str(m))
+        mgr.close_session()
 
     #
     # List out the schema that are imported or included and NOT

@@ -1,20 +1,47 @@
-<native xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-native">
-  <interface>
-    <VirtualPortGroup>
-      <name>0</name>
-      <ip>
-        <address>
-          <primary>
-            <address>192.168.10.1</address>
-            <mask>255.255.255.0</mask>
-          </primary>
-        </address>
-      </ip>
-      <mop>
-        <enabled>false</enabled>
-        <sysid>false</sysid>
-      </mop>
-    </VirtualPortGroup>
-  </interface>
-  <iox/>
-</native>
+<config xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0">
+  <native xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-native">
+    <ip>
+      <route>
+        <ip-route-interface-forwarding-list>
+          <prefix>0.0.0.0</prefix>
+          <mask>0.0.0.0</mask>
+          <fwd-list>
+            <fwd>GigabitEthernet1</fwd>
+            <dhcp/>
+          </fwd-list>
+        </ip-route-interface-forwarding-list>
+      </route>
+    <interface>
+      <VirtualPortGroup>
+        <name>{{VPG_IFNUM}}</name>
+        <description>IOx External Interface</description>
+        <ip>
+          <address>
+            <primary>
+              <address>{{VPG_IP}}</address>
+              <mask>{{VPG_NETMASK}}</mask>
+            </primary>
+          </address>
+        </ip>
+      </VirtualPortGroup>
+    </interface>
+    <iox/>
+  </native>
+  <app-hosting-cfg-data xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-app-hosting-cfg">
+    <apps>
+      <app>
+        <application-name>guestshell</application-name>
+        <application-network-resource>
+          <vnic-gateway-0>0</vnic-gateway-0>
+          <virtualportgroup-guest-interface-name-1>0</virtualportgroup-guest-interface-name-1>
+          <virtualportgroup-guest-ip-address-1>{{GUEST_IP}}</virtualportgroup-guest-ip-address-1>
+          <virtualportgroup-guest-ip-netmask-1>{{GUEST_NETMASK}}</virtualportgroup-guest-ip-netmask-1>
+          <virtualportgroup-application-default-gateway-1>{{VPG_IP}}</virtualportgroup-application-default-gateway-1>
+          <nameserver-0>{{NS0}}</nameserver-0>
+          <virtualportgroup-guest-interface-default-gateway-1>0</virtualportgroup-guest-interface-default-gateway-1>
+          <nameserver-1>{{NS1}}</nameserver-1>
+        </application-network-resource>
+      </app>
+    </apps>
+  </app-hosting-cfg-data>
+</config>
