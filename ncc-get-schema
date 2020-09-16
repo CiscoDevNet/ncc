@@ -8,6 +8,8 @@ import logging
 import os
 import os.path
 import pyang
+import pyang.repository
+import pyang.context
 import sys
 
 from argparse import ArgumentParser
@@ -81,11 +83,11 @@ def get_schema_with_depends(mgr, schema, version, dest_dir="."):
     '''
     to_resolve = set([(schema, version)])
     try:
-        repo = pyang.FileRepository(dest_dir)
+        repo = pyang.repository.FileRepository(dest_dir)
         while to_resolve:
             s, v = to_resolve.pop()
             c = mgr.get_schema(s, version=v)
-            ctx = pyang.Context(repo)
+            ctx = pyang.context.Context(repo)
             ctx.add_module(s, c.data)
             for ((m, r), module) in ctx.modules.items():
                 if m == s:

@@ -15,6 +15,8 @@ from os.path import isfile, join, basename, exists, getsize
 import logging
 import os
 import pyang
+import pyang.repository
+import pyang.context
 import re
 import string
 import sys
@@ -554,10 +556,10 @@ if __name__ == '__main__':
     #
     logger.log(logging.INFO, 'Checking downloaded schema for imports and includes...')
     imports_and_includes = set()
-    repos = pyang.FileRepository(targetdir)
+    repos = pyang.repository.FileRepository(targetdir)
     yangfiles = [f for f in listdir(targetdir) if isfile(join(targetdir, f))]
     for fname in yangfiles:
-        ctx = pyang.Context(repos)
+        ctx = pyang.context.Context(repos)
         fd = open(targetdir+'/'+fname, 'r')
         text = fd.read()
         ctx.add_module(fname, text)

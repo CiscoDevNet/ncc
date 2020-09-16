@@ -11,6 +11,8 @@ from argparse import ArgumentParser
 from ncclient import manager
 from ncclient.operations.rpc import RPCError
 import pyang
+import pyang.repository
+import pyang.context
 
 
 #
@@ -180,8 +182,8 @@ if __name__ == '__main__':
     # TODO: cater for explicitly revisioned imports & includes
     #
     imports_and_includes = set()
-    repos = pyang.FileRepository(args.output_dir, use_env=False)
-    ctx = pyang.Context(repos)
+    repos = pyang.repository.FileRepository(args.output_dir, use_env=False)
+    ctx = pyang.context.Context(repos)
     yangfiles = [f for f in listdir(args.output_dir) if isfile(join(args.output_dir, f))]
     for fname in sorted(yangfiles):
         logger.debug('Parsing %s', fname)

@@ -36,7 +36,7 @@ setup(
     download_url='https://pypi.python.org/pypi/ncc',
     install_requires=[
         'Jinja2>=2.8',
-        'pyang>=1.7.3',
+        'pyang>=2.3.2',
         'ncclient>=0.6.3',
         'GitPython>=2.1.3',
         'beautifulsoup4>=4.6.0',

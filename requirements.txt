@@ -4,6 +4,6 @@ MarkupSafe>=1.0
 lxml>=3.6.0
 ncclient>=0.5.3
 netmiko>=2.0.2
-pyang>=1.6
+pyang>=2.3.2
 requests>=2.10.0
 GitPython>=2.1.3
