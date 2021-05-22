@@ -1,0 +1,24 @@
+
+[tool.poetry]
+name = "ncc"
+version = "0.1.0"
+description = ""
+authors = ["Einar Nilsen-Nygaard <einarnn@gmail.com>"]
+license = "Apache License, Version 2.0"
+
+[tool.poetry.dependencies]
+python = ">= 3.6"
+beautifulsoup4 = "^4.9.3"
+Jinja2 = "^3.0.1"
+ncclient = "^0.6.10"
+netmiko = "^3.4.0"
+pyang = "^2.4.0"
+requests = "^2.25.1"
+GitPython = "^3.1.17"
+MarkupSafe = "^2.0.1"
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
