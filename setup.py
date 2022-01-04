@@ -37,10 +37,12 @@ setup(
     install_requires=[
         'Jinja2>=2.8',
         'pyang>=2.3.2',
-        'ncclient>=0.6.3',
+        'ncclient>=0.6.10',
         'GitPython>=2.1.3',
         'beautifulsoup4>=4.6.0',
-        'netmiko>=2.0.2'
+        'netmiko>=2.0.2',
+        'requests>=2.27.0',
+        'urllib3>=1.25.6',
     ],
     include_package_data=True,
     keywords=['yang', 'netconf'],
