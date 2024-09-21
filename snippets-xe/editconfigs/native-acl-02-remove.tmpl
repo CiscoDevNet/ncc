@@ -1,0 +1,13 @@
+<config xmlns="urn:ietf:params:xml:ns:netconf:base:1.0"
+  xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0">
+  <native xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-native">
+    <ip>
+      <access-list>
+        <extended nc:operation="remove"
+          xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-acl">
+          <name>TESTTEST</name>
+        </extended>
+      </access-list>
+    </ip>
+  </native>
+</config>

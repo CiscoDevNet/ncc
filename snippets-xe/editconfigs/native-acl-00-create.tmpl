@@ -1,0 +1,23 @@
+<config xmlns="urn:ietf:params:xml:ns:netconf:base:1.0"
+  xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0">
+  <native xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-native">
+    <ip>
+      <access-list>
+        <extended nc:operation="create"
+          xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-acl">
+          <name>TESTTEST</name>
+          <access-list-seq-rule>
+            <sequence>11</sequence>
+            <ace-rule>
+              <action>deny</action>
+              <protocol>ip</protocol>
+              <any/>
+              <dest-ipv4-address>2.2.2.2</dest-ipv4-address>
+              <dest-mask>0.0.0.0</dest-mask>
+            </ace-rule>
+          </access-list-seq-rule>
+        </extended>
+      </access-list>
+    </ip>
+  </native>
+</config>
