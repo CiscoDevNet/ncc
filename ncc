@@ -232,6 +232,21 @@ def do_templates(m, t_list, default_op='merge', **kwargs):
         m.commit()
 
 
+def do_rpc(m, tmpl, **kwargs):
+    """Execute a list of templates, using the kwargs passed in to
+    complete the rendering.
+    """
+
+    try:
+        data = tmpl.render(kwargs)
+        return m.rpc(etree.fromstring(data))
+    except UndefinedError as e:
+        print("Undefined variable %s.  Use --params to specify json dict"
+                % e.message)
+        # assuming we should fail if a single template fails?
+        exit(1)
+
+
 def get_running_config(m, filter=None, xpath=None, with_defaults=None):
     """
     Get running config with a passed in filter. If both types of filter
@@ -400,7 +415,9 @@ if __name__ == '__main__':
     g.add_argument('--list-templates', action='store_true',
                    help="List out named edit-config templates")
     g.add_argument('--list-filters', action='store_true',
-                   help="List out named filters")
+                   help="List out named filter templates")
+    g.add_argument('--list-rpcs', action='store_true',
+                   help="List out named RPC templates")
     g.add_argument('-g', '--get-running', action='store_true',
                    help="Get the running config")
     g.add_argument('--get-oper', action='store_true',
@@ -410,6 +427,8 @@ if __name__ == '__main__':
                    "optional default operation and a single commit when "
                    "candidate config supported. If only writable-running "
                    "support, ALL operations will be attempted.")
+    g.add_argument('--rpc', type=str,
+                   help="Execute a named RPC templates.")
     g.add_argument('-w', '--where', action='store_true',
                    help="Print where script is and exit")
 
@@ -446,6 +465,9 @@ if __name__ == '__main__':
     named_templates = Environment(loader=FileSystemLoader(
         '%s/editconfigs' % args.snippets),
         undefined=StrictUndefined)
+    named_rpcs = Environment(loader=FileSystemLoader(
+        '%s/rpcs' % args.snippets),
+        undefined=StrictUndefined)
 
     #
     # Do the named template/filter listing first, then exit.
@@ -455,6 +477,9 @@ if __name__ == '__main__':
         sys.exit(0)
     elif args.list_filters:
         list_templates("Named filters:", named_filters)
+        sys.exit(0)
+    elif args.list_rpcs:
+        list_templates("Named RPCs:", named_rpcs)
         sys.exit(0)
 
     #
@@ -607,10 +632,27 @@ if __name__ == '__main__':
             start_time = time.time()
             do_templates(
                 m,
-                [named_templates.get_template('%s.tmpl' % t)
-                  for t in args.do_edits],
+                [named_templates.get_template('%s.tmpl' % t) for t in args.do_edits],
                 default_op=args.default_op,
                 **kwargs)
+            end_time = time.time()
+        except RPCError as e:
+            end_time = time.time()
+            print("RPC Error")
+            print("---------")
+            print("severity: %s" % e.severity)
+            print("     tag: %s" % e.tag)
+            if e.path and len(e.path) > 0:
+                print("    path: %s" % strip_leading_trailing_ws(e.path))
+            print(" message: %s" % e.message)
+            print("    type: %s" % e.type)
+    elif args.rpc:
+        try:
+            start_time = time.time()
+            results.append( do_rpc(
+                m,
+                named_rpcs.get_template('%s.tmpl' % args.rpc),
+                **kwargs))
             end_time = time.time()
         except RPCError as e:
             end_time = time.time()
@@ -634,8 +676,9 @@ if __name__ == '__main__':
     #
     if len(results) > 0:
         for c in results:
-            if c:
-                print(etree.tostring(c.data, pretty_print=True).decode('UTF-8'))
+            if c and c.ok:
+                print(c.xml)
+                # print(etree.tostring(c._root, pretty_print=True).decode('UTF-8'))
 
     #
     # dsplay operation time if requested
