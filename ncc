@@ -428,7 +428,7 @@ if __name__ == '__main__':
                    "candidate config supported. If only writable-running "
                    "support, ALL operations will be attempted.")
     g.add_argument('--rpc', type=str,
-                   help="Execute a named RPC templates.")
+                   help="Execute a named RPC template.")
     g.add_argument('-w', '--where', action='store_true',
                    help="Print where script is and exit")
 

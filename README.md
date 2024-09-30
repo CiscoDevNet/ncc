@@ -4,16 +4,17 @@
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
 
-- [New & Updated](#new--updated)
-- [Introduction](#introduction)
-- [Python Dependencies](#python-dependencies)
-- [Python Scripts](#python-scripts)
-  - [Running The Scripts](#running-the-scripts)
-  - [ncc-establish-subscription.py](#ncc-establish-subscriptionpy)
-  - [ncc.py](#nccpy)
-    - [Device Capabilities](#device-capabilities)
-    - [Snippets](#snippets)
-- [Running The Jupyter Notebooks](#running-the-jupyter-notebooks)
+- [Various Scripts \& Jupyter Notebooks](#various-scripts--jupyter-notebooks)
+  - [New \& Updated](#new--updated)
+  - [Introduction](#introduction)
+  - [Python Dependencies](#python-dependencies)
+  - [Python Scripts](#python-scripts)
+    - [Running The Scripts](#running-the-scripts)
+    - [ncc-establish-subscription.py](#ncc-establish-subscriptionpy)
+    - [ncc](#ncc)
+      - [Device Capabilities](#device-capabilities)
+      - [Snippets](#snippets)
+  - [Running The Jupyter Notebooks](#running-the-jupyter-notebooks)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -21,13 +22,14 @@
 
 |  Date  | Status |  Description  |
 | :----: | :----: | :------------ |
-| 08/17/18 | ![](images/updated.png) | Added option to specify # bytes displayed for UnicodeDecodeError exceptions | 
-| 08/15/18 | ![](images/updated.png) | Added operation timing plus helpful display of UnicodeDecodeError exceptions to `ncc` | 
-| 03/11/18 | ![](images/updated.png) | Code review comments addressed, convenience links to still have .py versions of scripts added, `ncc --env` now shows command line option environment variables apply to |
-| 02/21/18 | ![](images/updated.png) | Tweaks to `ncc-capture-schema` plus its addition to packaged scripts |
-| 02/14/18 | ![](images/new.png) | Addition of `--install-snippets` and `--env` options to `ncc`.
-| 02/14/18 | ![](images/updated.png) | Preparation for pip installation and PyPi upload; removing `.py` extensions from scripts that will be pip-installed; addition of copyright statements and [`LICENSE.txt`](LICENSE.txt); removed legacy script links.
-| 02/09/18 | ![](images/new.png) | Addition of `--ns` option for XPath filters, allowing either direct list of namespace mapping or via a file (sample file [here](sample-ns.json)) 
+| 09/30/24 | ![](images/new.png) | Added ability to invoke YANG RPC over NETCONF |
+| 08/17/18 | | Added option to specify # bytes displayed for UnicodeDecodeError exceptions | 
+| 08/15/18 | | Added operation timing plus helpful display of UnicodeDecodeError exceptions to `ncc` | 
+| 03/11/18 | | Code review comments addressed, convenience links to still have .py versions of scripts added, `ncc --env` now shows command line option environment variables apply to |
+| 02/21/18 | | Tweaks to `ncc-capture-schema` plus its addition to packaged scripts |
+| 02/14/18 | | Addition of `--install-snippets` and `--env` options to `ncc`.
+| 02/14/18 | | Preparation for pip installation and PyPi upload; removing `.py` extensions from scripts that will be pip-installed; addition of copyright statements and [`LICENSE.txt`](LICENSE.txt); removed legacy script links.
+| 02/09/18 | | Addition of `--ns` option for XPath filters, allowing either direct list of namespace mapping or via a file (sample file [here](sample-ns.json)) 
 
 
 ## Introduction
@@ -62,7 +64,7 @@ Please note that the script `ncc-establish-subscription.py` currently requires a
 
 The Python scripts have been radically rationalized and there are now just a few key scripts, with the remainder moved to the [```archived```](archived) directory. The main scripts are:
 
-* [`ncc`](ncc) -- A kind of Swiss Army Knife script with many options to get-config, get, edit-config, pass in parameters for substitution, etc. Can be easily extended by users to have more edit-config templates or more named filter templates. Available content can be seen using the ```--list-templates``` and ```--list-filters``` parameters.
+* [`ncc`](ncc) -- A kind of Swiss Army Knife script with many options to get-config, get, edit-config, pass in parameters for substitution, etc. Can be easily extended by users to have more edit-config templates or more named filter templates. Available content can be seen using the ```--list-templates```, ```--list-filters``` and ```list-rpcs``` parameters. Only content from currently "snippet" directory is shown.
 
 * [`ncc-establish-subscription.py`](ncc-establish-subscription.py) -- Simple script to allow the creation of multiple dynamic telemetry subscriptions per an early draft of the IETF YANG Push functionality. Currently supported on IOS-XE 16.6.1 and later. Initial support was for switching platforms, with other platforms being supported in subsequent releases. **Note that this script requires a fork of the `ncclient` library. Once the Python dependencies above have been installed, the forked version may be installed using the command `pip install --upgrade git+https://github.com/CiscoDevNet/ncclient.git`**. Please see [here](https://github.com/CiscoDevNet/ncclient/blob/master/README.md) for more details.
 
@@ -135,45 +137,36 @@ optional arguments:
 
 ```
 $ ncc --help
-usage: ncc [-h] [--host HOST] [-u USERNAME] [-p PASSWORD] [--port PORT]
-           [--timeout TIMEOUT] [-v] [--default-op DEFAULT_OP]
-           [--device-type DEVICE_TYPE] [--snippets SNIPPETS]
-           [--ns NS [NS ...]] [--params PARAMS] [--params-file PARAMS_FILE]
-           [-f FILTER | --named-filter NAMED_FILTER [NAMED_FILTER ...] | -x
-           XPATH]
-           (--env | --install-snippets | -c | --is-supported IS_SUPPORTED | --list-templates | --list-filters | -g | --get-oper | --do-edits DO_EDITS [DO_EDITS ...] | -w)
+usage: ncc [-h] [--host HOST] [-u USERNAME] [-p PASSWORD] [--port PORT] [--timeout TIMEOUT] [-v] [-t] [--default-op DEFAULT_OP] [--with-defaults WITH_DEFAULTS] [--device-type DEVICE_TYPE] [--unicode-error-bytes UNICODE_ERROR_BYTES] [--snippets SNIPPETS]
+           [--ns NS [NS ...]] [--params PARAMS] [--params-file PARAMS_FILE] [-f FILTER | --named-filter NAMED_FILTER [NAMED_FILTER ...] | -x XPATH]
+           (--env | --install-snippets | -c | --is-supported IS_SUPPORTED | --list-templates | --list-filters | --list-rpcs | -g | --get-oper | --do-edits DO_EDITS [DO_EDITS ...] | --rpc RPC | -w)
 
 Select your NETCONF operation and parameters:
 
-optional arguments:
+options:
   -h, --help            show this help message and exit
-  --host HOST           The IP address for the device to connect to (default
-                        localhost)
+  --host HOST           The IP address for the device to connect to (default localhost)
   -u USERNAME, --username USERNAME
-                        Username to use for SSH authentication (default
-                        'cisco')
+                        Username to use for SSH authentication (default 'cisco')
   -p PASSWORD, --password PASSWORD
-                        Password to use for SSH authentication (default
-                        'cisco')
-  --port PORT           Specify this if you want a non-default port (default
-                        830)
+                        Password to use for SSH authentication (default 'cisco')
+  --port PORT           Specify this if you want a non-default port (default 830)
   --timeout TIMEOUT     NETCONF operation timeout in seconds (default 60)
   -v, --verbose         Exceedingly verbose logging to the console
+  -t, --time            Display the time an operation took, excluding connection setup and display
   --default-op DEFAULT_OP
                         The NETCONF default operation to use (default 'merge')
+  --with-defaults WITH_DEFAULTS
+                        RFC 6243 with-defaults value to use
   --device-type DEVICE_TYPE
                         The device type to pass to ncclient (default: None)
-  --snippets SNIPPETS   Directory where 'snippets' can be found; default is
-                        location of script
-  --ns NS [NS ...]      Specify list of prefix=NS bindings or JSON files with
-                        bindings. @filename will read a JSON file and update
-                        the set of namespace bindings, silently overwriting
-                        with any redefinitions.
-  --params PARAMS       JSON-encoded string of parameters dictionary for
-                        templates
+  --unicode-error-bytes UNICODE_ERROR_BYTES
+                        Specify number of +/- bytes to display for UnicodeDecodeError exceptions (default 30)
+  --snippets SNIPPETS   Directory where 'snippets' can be found; default is location of script
+  --ns NS [NS ...]      Specify list of prefix=NS bindings or JSON files with bindings. @filename will read a JSON file and update the set of namespace bindings, silently overwriting with any redefinitions.
+  --params PARAMS       JSON-encoded string of parameters dictionary for templates
   --params-file PARAMS_FILE
-                        JSON-encoded file of parameters dictionary for
-                        templates
+                        JSON-encoded file of parameters dictionary for templates
   -f FILTER, --filter FILTER
                         NETCONF subtree filter
   --named-filter NAMED_FILTER [NAMED_FILTER ...]
@@ -181,25 +174,19 @@ optional arguments:
   -x XPATH, --xpath XPATH
                         NETCONF XPath filter
   --env                 Display environment variables a user can set.
-  --install-snippets    Use git to obtain the snippets from GitHub and copy to
-                        the current directory
+  --install-snippets    Use git to obtain the snippets from GitHub and copy to the current directory
   -c, --capabilities    Display capabilities of the device.
   --is-supported IS_SUPPORTED
-                        Query the server capabilities to determine whether the
-                        device claims to support YANG modules matching the
-                        provided regular expression. The regex provided is not
-                        automatically anchored to start or end. Note that the
-                        regex supplied must be in a format valid for Python
-                        and that it may be necessary to quote the argument.
+                        Query the server capabilities to determine whether the device claims to support YANG modules matching the provided regular expression. The regex provided is not automatically anchored to start or end. Note that the regex supplied must
+                        be in a format valid for Python and that it may be necessary to quote the argument.
   --list-templates      List out named edit-config templates
-  --list-filters        List out named filters
+  --list-filters        List out named filter templates
+  --list-rpcs           List out named RPC templates
   -g, --get-running     Get the running config
   --get-oper            Get oper data
   --do-edits DO_EDITS [DO_EDITS ...]
-                        Execute a sequence of named templates with an optional
-                        default operation and a single commit when candidate
-                        config supported. If only writable-running support,
-                        ALL operations will be attempted.
+                        Execute a sequence of named templates with an optional default operation and a single commit when candidate config supported. If only writable-running support, ALL operations will be attempted.
+  --rpc RPC             Execute a named RPC template.
   -w, --where           Print where script is and exit
 ```
 
