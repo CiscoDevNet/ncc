@@ -21,7 +21,7 @@
 
 |  Date  | Status |  Description  |
 | :----: | :----: | :------------ |
-| 02/22/25 | ![](images/new.png) | moved to Poetry | 
+| 02/22/25 | ![](images/new.png) | Moved to Poetry | 
 | 08/17/18 |  | Added option to specify # bytes displayed for UnicodeDecodeError exceptions | 
 | 08/15/18 |  | Added operation timing plus helpful display of UnicodeDecodeError exceptions to `ncc` | 
 | 03/11/18 |  | Code review comments addressed, convenience links to still have .py versions of scripts added, `ncc --env` now shows command line option environment variables apply to |
