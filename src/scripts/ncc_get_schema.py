@@ -105,7 +105,7 @@ def get_schema_with_depends(mgr, schema, version, dest_dir="."):
             file=sys.stderr)
 
 
-if __name__ == '__main__':
+def main():
 
     parser = ArgumentParser(description='Select schema download options:')
     parser.add_argument('-a', '--host', type=str, required=True,

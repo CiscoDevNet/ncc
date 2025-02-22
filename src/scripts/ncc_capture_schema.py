@@ -4,7 +4,7 @@
 #
 from __future__ import print_function
 from bs4 import BeautifulSoup
-from argparse import ArgumentParser
+from git.exc import GitCommandError
 from lxml import etree
 from ncclient import manager
 from ncclient.operations.rpc import RPCError
@@ -12,17 +12,13 @@ from nccutil import repoutil
 from netmiko import ConnectHandler
 from os import listdir, makedirs
 from os.path import isfile, join, basename, exists, getsize
-import logging
-import os
-import pyang
-import pyang.repository
-import pyang.context
-import re
-import string
-import sys
-import time
-from git.exc import GitCommandError
 import json
+import logging
+import pyang
+import pyang.context
+import pyang.repository
+import re
+import sys
 
 #
 # setup logging
@@ -193,7 +189,10 @@ def get_schema(m, schema_nodes, output_dir):
     return failed_download
 
 
-if __name__ == '__main__':
+def main():
+
+    import os
+    from argparse import ArgumentParser
 
     parser = ArgumentParser(description='Provide device and output parameters:')
     

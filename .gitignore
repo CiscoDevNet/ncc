@@ -3,4 +3,5 @@
 v/
 .ipynb_checkpoints/
 .DS_Store
-
+.jython_cache/
+.poetry/

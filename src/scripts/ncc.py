@@ -24,6 +24,13 @@ from ncclient import manager
 from ncclient.operations.rpc import RPCError
 
 #
+# Namespaces starting point for xpath queries
+#
+ns_dict = {
+    'nc': 'urn:ietf:params:xml:ns:netconf:base:1.0'
+}
+
+#
 # Add things people want logged here. Just various netconf things for
 # now. SSH disabled as it is just too much right now.
 #
@@ -34,16 +41,14 @@ LOGGING_TO_ENABLE = [
 ]
 
 #
+# default bytes to display when UnicodeDecodeError exceptions are caught
+#
+UNICODE_ERRB = 30
+
+#
 # Repository to clone snippets from
 #
 REPO_URL = 'https://github.com/CiscoDevNet/ncc.git'
-
-#
-# Namespaces starting point for xpath queries
-#
-ns_dict = {
-    'nc': 'urn:ietf:params:xml:ns:netconf:base:1.0'
-}
 
 #
 # Capability constants
@@ -62,11 +67,6 @@ CANDIDATE = False
 # templates and filters unless overriden.
 #
 NCC_DIR, _ = os.path.split(os.path.realpath(__file__))
-
-#
-# default bytes to display when UnicodeDecodeError exceptions are caught
-#
-UNICODE_ERRB = 30
 
 
 def strip_leading_trailing_ws(to_strip):
@@ -294,8 +294,24 @@ def report_unicode_decode_error(u):
     print('Surrounding data (+/- up to {} bytes):'.format(UNICODE_ERRB))
     print('    {}'.format(u.object[start:end]))
 
+#
+# new entry point for poetry
+#
+def main():
 
-if __name__ == '__main__':
+    #
+    # quick hack to allow for global constants to be referenced in this
+    # function correctly
+    #
+    global UNICODE_ERRB
+    global RUNNING
+    global CANDIDATE
+    global NCC_DIR
+    global LOGGING_TO_ENABLE
+    global REPO_URL
+    global NC_WRITABLE_RUNNING
+    global NC_CANDIDATE
+    global ns_dict
 
     parser = ArgumentParser(
         description='Select your NETCONF operation and parameters:')

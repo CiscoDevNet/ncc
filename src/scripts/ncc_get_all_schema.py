@@ -64,7 +64,7 @@ def get_schema(m, schema_list, output_dir, start_after=None):
     return failed_download
 
 
-if __name__ == '__main__':
+def main():
 
     parser = ArgumentParser(description='Provide device and output parameters:')
     parser.add_argument('-a', '--host', type=str, required=True,

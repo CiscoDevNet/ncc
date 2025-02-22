@@ -206,7 +206,7 @@ def compose_edit_config(m):
         return writable_running_edit_config
 
         
-if __name__ == '__main__':
+def main():
 
     parser = ArgumentParser(description='Select your YANG push parameters:')
 
@@ -309,7 +309,6 @@ if __name__ == '__main__':
     #
     # create appropriate edit config function
     #
-    fn_edit_config = compose_edit_config(m)
 
     #
     # do requested operation
@@ -317,8 +316,9 @@ if __name__ == '__main__':
     if args.list_subscriptions:
         list_subscriptions(m)
     elif args.add_subscription:
+        fn_edit_config_replace = compose_edit_config(m)
         replace_subscription(
-            fn_edit_config,
+            fn_edit_config_replace,
             subs_id=args.subscription_id,
             xpath=args.xpath,
             receiver_ipv4=args.rx_ipv4,
@@ -326,8 +326,9 @@ if __name__ == '__main__':
             period=args.period,
             dampening_period=args.dampening_period)
     elif args.delete_subscription:
+        fn_edit_config_delete = compose_edit_config(m)
         delete_subscription(
-            fn_edit_config,
+            fn_edit_config_delete,
             args.subscription_id)
         
     #
