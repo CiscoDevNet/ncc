@@ -3,17 +3,17 @@
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
-
-- [New & Updated](#new--updated)
-- [Introduction](#introduction)
-- [Python Dependencies](#python-dependencies)
-- [Python Scripts](#python-scripts)
-  - [Running The Scripts](#running-the-scripts)
-  - [ncc-establish-subscription.py](#ncc-establish-subscriptionpy)
-  - [ncc.py](#nccpy)
-    - [Device Capabilities](#device-capabilities)
-    - [Snippets](#snippets)
-- [Running The Jupyter Notebooks](#running-the-jupyter-notebooks)
+- [Various Scripts \& Jupyter Notebooks](#various-scripts--jupyter-notebooks)
+  - [New \& Updated](#new--updated)
+  - [Introduction](#introduction)
+  - [PyPi Upload Instructions](#pypi-upload-instructions)
+  - [Python Scripts](#python-scripts)
+    - [Running The Scripts](#running-the-scripts)
+    - [ncc-establish-subscription.py](#ncc-establish-subscriptionpy)
+    - [ncc](#ncc)
+      - [Device Capabilities](#device-capabilities)
+      - [Snippets](#snippets)
+  - [Running The Jupyter Notebooks](#running-the-jupyter-notebooks)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -21,13 +21,14 @@
 
 |  Date  | Status |  Description  |
 | :----: | :----: | :------------ |
-| 08/17/18 | ![](images/updated.png) | Added option to specify # bytes displayed for UnicodeDecodeError exceptions | 
-| 08/15/18 | ![](images/updated.png) | Added operation timing plus helpful display of UnicodeDecodeError exceptions to `ncc` | 
-| 03/11/18 | ![](images/updated.png) | Code review comments addressed, convenience links to still have .py versions of scripts added, `ncc --env` now shows command line option environment variables apply to |
-| 02/21/18 | ![](images/updated.png) | Tweaks to `ncc-capture-schema` plus its addition to packaged scripts |
-| 02/14/18 | ![](images/new.png) | Addition of `--install-snippets` and `--env` options to `ncc`.
-| 02/14/18 | ![](images/updated.png) | Preparation for pip installation and PyPi upload; removing `.py` extensions from scripts that will be pip-installed; addition of copyright statements and [`LICENSE.txt`](LICENSE.txt); removed legacy script links.
-| 02/09/18 | ![](images/new.png) | Addition of `--ns` option for XPath filters, allowing either direct list of namespace mapping or via a file (sample file [here](sample-ns.json)) 
+| 02/22/25 | ![](images/new.png) | moved to Poetry | 
+| 08/17/18 |  | Added option to specify # bytes displayed for UnicodeDecodeError exceptions | 
+| 08/15/18 |  | Added operation timing plus helpful display of UnicodeDecodeError exceptions to `ncc` | 
+| 03/11/18 |  | Code review comments addressed, convenience links to still have .py versions of scripts added, `ncc --env` now shows command line option environment variables apply to |
+| 02/21/18 |  | Tweaks to `ncc-capture-schema` plus its addition to packaged scripts |
+| 02/14/18 |  | Addition of `--install-snippets` and `--env` options to `ncc`.
+| 02/14/18 |  | Preparation for pip installation and PyPi upload; removing `.py` extensions from scripts that will be pip-installed; addition of copyright statements and [`LICENSE.txt`](LICENSE.txt); removed legacy script links.
+| 02/09/18 |  | Addition of `--ns` option for XPath filters, allowing either direct list of namespace mapping or via a file (sample file [here](sample-ns.json)) 
 
 
 ## Introduction
@@ -38,55 +39,54 @@ This repository presents:
 * Jupyter (IPython) Notebooks in the directory [`notebooks`](notebooks).
 
 
-## Python Dependencies
+## PyPi Upload Instructions
 
-The package dependencies for the scripts and the jupyter notebooks are listed in ```requirements.txt```, which may be used to install the dependencies thus (note the upgrade to pip; must be running **```pip >= 8.1.2```** to successfully install some dependencies):
+First, tag your build appropriately (`git tag vX.Y.Z`) build using `poetry build` and ensure you have defined the repositories `ncc` and `ncc-test` in your `~/.pypirc` file. Then you may test the upload:
 
 ```
-EINARNN-M-80AT:ncc einarnn$ virtualenv v
-New python executable in v/bin/python2.7
-Also creating executable in v/bin/python
-Installing setuptools, pip, wheel...done.
-EINARNN-M-80AT:ncc einarnn$ . v/bin/activate
-(v)EINARNN-M-80AT:ncc einarnn$ pip install --upgrade pip
-Requirement already up-to-date: pip in ./v/lib/python2.7/site-packages
-(v)EINARNN-M-80AT:ncc einarnn$ pip install -r requirements.txt
+twine upload --repository ncc-test dist/ncc-X.Y.Z.tar.gz
 ```
 
-This example shows using the virtualenv tool to isolate packages from your global python install. This is recommended. Note that the version of pip installed in the test environment was up to date, and so it did not need upgraded.
+Finally, do the producvtion upload:
 
-Please note that the script `ncc-establish-subscription.py` currently requires a temporarily [forked version](https://github.com/CiscoDevNet/ncclient) of the `ncclient` library.
+```
+twine upload --repository ncc dist/ncc-X.Y.Z.tar.gz
+```
 
 
 ## Python Scripts
 
-The Python scripts have been radically rationalized and there are now just a few key scripts, with the remainder moved to the [```archived```](archived) directory. The main scripts are:
+All scripts are in [`src/scripts`](src/scripts). Here is a description of those installed as part of the package:
 
-* [`ncc`](ncc) -- A kind of Swiss Army Knife script with many options to get-config, get, edit-config, pass in parameters for substitution, etc. Can be easily extended by users to have more edit-config templates or more named filter templates. Available content can be seen using the ```--list-templates``` and ```--list-filters``` parameters.
+* `ncc` -- A kind of Swiss Army Knife script with many options to get-config, get, edit-config, pass in parameters for substitution, etc. Can be easily extended by users to have more edit-config templates or more named filter templates. Available content can be seen using the ```--list-templates``` and ```--list-filters``` parameters.
 
-* [`ncc-establish-subscription.py`](ncc-establish-subscription.py) -- Simple script to allow the creation of multiple dynamic telemetry subscriptions per an early draft of the IETF YANG Push functionality. Currently supported on IOS-XE 16.6.1 and later. Initial support was for switching platforms, with other platforms being supported in subsequent releases. **Note that this script requires a fork of the `ncclient` library. Once the Python dependencies above have been installed, the forked version may be installed using the command `pip install --upgrade git+https://github.com/CiscoDevNet/ncclient.git`**. Please see [here](https://github.com/CiscoDevNet/ncclient/blob/master/README.md) for more details.
+* `ncc-get-all-schema` -- Script that attempts to download all the supported schema that the box has and tries to compile them, determine missing includes or imports, etc.
 
-* [`ncc-filtered-get.py`](ncc-filtered-get.py) -- Very simple script that takes a subtree filter and does a get.
+* `ncc-get-schema` -- Script to get a single names schema and dup it to ```STDOUT```.
 
-* [`ncc-get-all-schema`](ncc-get-all-schema) -- Script that attempts to download all the supported schema that the box has and tries to compile them, determine missing includes or imports, etc.
+* `ncc-capture-schema` -- Script to capture the schema from a device and commit int a git reposiroty structured per [YangModels/yang](https://github.com/YangModels/yang). Uses netmiko to capture some initial device information, and needs device type passed in from CLI (per netmiko device types). Currently only supports IOS-XR, IOS-XE and NX-OS without changes. Fairly easy to add other device types.
 
-* [`ncc-get-schema`](ncc-get-schema) -- Script to get a single names schema and dup it to ```STDOUT```.
+* `ncc-yang-push` -- Script to work with telemetry subscriptions.
 
-* [`ncc-capture-schema`](ncc-capture-schema) -- Script to capture the schema from a device and commit int a git reposiroty structured per [YangModels/yang](https://github.com/YangModels/yang). Uses netmiko to capture some initial device information, and needs device type passed in from CLI (per netmiko device types). Currently only supports IOS-XR, IOS-XE and NX-OS without changes. Fairly easy to add other device types.
+There are som other draft scripts that can serve as examples:
 
-* [`ncc-simple-poller.py`](ncc-simple-poller.py) -- Script that polls a device on a specified cadence for a specified subtree or XPath filter.
+* `ncc-establish-subscription.py` -- Simple script to allow the creation of multiple dynamic telemetry subscriptions per an early draft of the IETF YANG Push functionality. Currently supported on IOS-XE 16.6.1 and later. Initial support was for switching platforms, with other platforms being supported in subsequent releases. **Note that this script requires a fork of the `ncclient` library. Once the Python dependencies above have been installed, the forked version may be installed using the command `pip install --upgrade git+https://github.com/CiscoDevNet/ncclient.git`**. Please see [here](https://github.com/CiscoDevNet/ncclient/blob/master/README.md) for more details.
 
-* [`rc-xr.py`](rc-xr.py) -- Embryonic RESTCONF sample script using the Python `requests` library.
+* `ncc-filtered-get.py` -- Very simple script that takes a subtree filter and does a get.
+
+* `ncc-simple-poller.py` -- Script that polls a device on a specified cadence for a specified subtree or XPath filter.
+
+* `rc-xr.py` -- Embryonic RESTCONF sample script using the Python `requests` library.
 
 
-A couple of the scripts used to have other names, so, for backwards compatibility, the following symlinks currently exist:
+More scripts may exist. The git repo is the most up to date record, not this README!
 
 
 ### Running The Scripts
 
 The scripts mostly have a fairly common set of options for help, hostname, port, username and password. Just try running with the `--help` option.
 
-> Note that the help text displayed here may be out of step with the actual code. Please run latest version of the script to ensure satisfaction!
+> Note that the help text displayed here may be out of step with the actual code. **Please run latest version of the script to ensure satisfaction!**
 
 
 ### ncc-establish-subscription.py
