@@ -6,6 +6,7 @@
 - [Various Scripts \& Jupyter Notebooks](#various-scripts--jupyter-notebooks)
   - [New \& Updated](#new--updated)
   - [Introduction](#introduction)
+  - [Working On `ncc`](#working-on-ncc)
   - [PyPi Upload Instructions](#pypi-upload-instructions)
   - [Python Scripts](#python-scripts)
     - [Running The Scripts](#running-the-scripts)
@@ -38,6 +39,9 @@ This repository presents:
 * Python scripts using the ncclient library (`0.5.2` or greater as of writing) to talk to NETCONF-enabled devices.
 * Jupyter (IPython) Notebooks in the directory [`notebooks`](notebooks).
 
+## Working On `ncc`
+
+First create a virtual environment and then `pip install poetry`.
 
 ## PyPi Upload Instructions
 
@@ -47,7 +51,7 @@ First, tag your build appropriately (`git tag vX.Y.Z`) build using `poetry build
 twine upload --repository ncc-test dist/ncc-X.Y.Z.tar.gz
 ```
 
-Finally, do the producvtion upload:
+Finally, do the production upload:
 
 ```
 twine upload --repository ncc dist/ncc-X.Y.Z.tar.gz
