@@ -347,6 +347,8 @@ def main():
                         "(default 'merge')")
     parser.add_argument('--with-defaults', type=str,
                         help="RFC 6243 with-defaults value to use")
+    parser.add_argument('--use-libssh', action='store_true',
+                        help="Use libssh instead of Paramiko for SSH")
     parser.add_argument('--device-type', type=str, default=None,
                          help="The device type to pass to ncclient "
                          "(default: None)")
@@ -550,16 +552,28 @@ def main():
     if args.device_type is not None:
         device_params = {'name': args.device_type}
 
-    m = manager.connect(host=args.host,
-                        port=args.port,
-                        timeout=args.timeout,
-                        username=args.username,
-                        password=args.password,
-                        allow_agent=False,
-                        look_for_keys=False,
-                        hostkey_verify=False,
-                        device_params=device_params,
-                        unknown_host_cb=unknown_host_cb)
+    if args.use_libssh:
+        m = manager.connect(host=args.host,
+                            port=args.port,
+                            timeout=args.timeout,
+                            username=args.username,
+                            password=args.password,
+                            allow_agent=False,
+                            hostkey_verify=False,
+                            device_params=device_params,
+                            use_libssh=args.use_libssh,
+                            unknown_host_cb=unknown_host_cb)
+    else:
+        m = manager.connect(host=args.host,
+                            port=args.port,
+                            timeout=args.timeout,
+                            username=args.username,
+                            password=args.password,
+                            allow_agent=False,
+                            look_for_keys=False,
+                            hostkey_verify=False,
+                            device_params=device_params,
+                            unknown_host_cb=unknown_host_cb)
 
     #
     # Extract the key capabilities that determine how we interact with
