@@ -78,7 +78,7 @@ def main():
     parser.add_argument('-o', '--output-dir', type=str, required=False,
                         help="Where to write schema files")
     parser.add_argument('-t', '--timeout', type=int, required=False, default=30,
-                        help="Where to write schema files")
+                        help="Timeout value in seconds")
     parser.add_argument('-v', '--verbose', action='store_true',
                         help="Do some verbose logging")
 
